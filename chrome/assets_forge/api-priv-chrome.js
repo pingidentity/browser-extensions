@@ -236,6 +236,46 @@ var apiImpl = {
 					type: 'UNEXPECTED_FAILURE'
 				});
 			}
+		},
+		getCurrent: function(params, success, error) {
+			chrome.tabs.query({ currentWindow: true, active: true }, 
+				function (tabs) {
+  					if (typeof tabs !== "undefined") {
+  						var tab = tabs[0];
+  						success({id: tab.id, url: tab.url});
+  					}
+  					else {
+  						// TODO error
+  					}
+				}
+			);
+		},
+		/**
+		 * TODO Remove logging; kept in for now while the other browser implementations are being 
+		 * written.
+		 */
+		onTabSelectionChanged: function(params, success, error) {
+ 			
+			forge.logging.error('2. [forge] registering onTabSelectionChanged');
+
+ 			chrome.tabs.onActivated.addListener(function(activeInfo) {
+ 				// onActivated does not contain url info which we need.
+ 				// Query the newly current tab to get both id and url info.
+ 				chrome.tabs.query({ currentWindow: true, active: true }, 
+					function (tabs) {
+	  					if (typeof tabs !== "undefined") {
+	  						var tab = tabs[0];
+	  						forge.logging.error('3. [forge] onTabSelectionChanged: ' + tab.id);
+	  						success({id: tab.id, url: tab.url});
+	  						forge.logging.error('6. [forge] callback complete');
+	  						forge.logging.error('-------------------------------------------------------');
+	  					}
+	  					else {
+	  						// TODO error
+	  					}
+					}
+				);
+			});
 		}
 	},
 	button: {

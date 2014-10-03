@@ -126,11 +126,6 @@ var apiImpl = {
 	},
 	button: {
 		setIcon: function (url, success, error) {
-			// If schema not given, then assume local file; patch up url to be relative to data folder.
-			if (url.indexOf("://") < 0) {
-			    url = data.url(url);
-			}
-
 			if (button) {
 				button.update({
 					icon: url
@@ -257,6 +252,26 @@ var apiImpl = {
 		},
 		closeCurrent: function () {
 			this.tab.close();
+		},
+		getCurrent: function(params, success, error)  {
+			var tabs = require('sdk/tabs');
+			var tab = tabs.activeTab;
+			success({id: tab.id, url: tab.url});
+		},
+		/**
+		 * BUG OnTabSelectionChanged not working in FF; success callback appears to be called correctly the first 
+		 * time the activate event is fired, but then never again.
+		 * NOTE Should only be called from the background script
+		 */
+		onTabSelectionChanged: function(params, success, error) {
+			apiImpl.logging.log({message: '2. [forge] registering onTabSelectionChanged', level: 50 }, nullFn, nullFn);
+
+			var tabs = require('sdk/tabs');
+			tabs.on('activate', function (tab) {
+				apiImpl.logging.log({message: '3. [forge] onTabSelectionChanged: ' + tab.id, level: 50 }, nullFn, nullFn);
+				success({id: tab.id, url: tab.url});
+				apiImpl.logging.log({message: '6. [forge] callback complete', level: 50 }, nullFn, nullFn);
+			});
 		}
 	},
 	request: {
