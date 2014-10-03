@@ -32,21 +32,47 @@ var attachWorker = function (worker) {
 	});
 	worker.on('message', handleNonPrivCall);
 }
-var handleNonPrivCall = function(msg) { 
-	var self = this;
-	var handleResult = function (status) {
-		return function(content) {
-			// create and send response message
-			var reply = {callid: msg.callid, status: status, content: content};
-			try {
-				self.postMessage(reply);
-			} catch (e) {
-				// Probably a dead callback
-				// TODO: GC somehow
-			}
-		}
-	}
-	call(msg.method, msg.params, self, handleResult('success'), handleResult('error'));
+
+/**
+ * Helper function to find and return a property located deep within an object
+ * @param {Object} obj - The object to search
+ * @param {String} path - The dot-notation path to the property (e.g. "some.long.path.to.property")
+ * @returns {*|undefined} The value of the property if found or undefined
+ */
+var getDeepObjectProp = function (obj, path) {
+    for (var i = 0, path = path.split('.'), len = path.length; i < len; i++) {
+        if (typeof(obj) === "undefined" || obj === null ) {
+            return undefined;
+        }
+        obj = obj[path[i]];
+    };
+    return obj;
+};
+
+var handleNonPrivCall = function(msg) {
+    var self = this;
+    var handleResult = function (status) {
+        return function(content) {
+            // create and send response message
+            var reply = {callid: msg.callid, status: status, content: content};
+            try {
+                self.postMessage(reply);
+            } catch (e) {
+                // Probably a dead callback
+                // TODO: GC somehow
+            }
+        }
+    }
+
+    // Support for method names to be passed in the message content
+    if (typeof(msg) !== null) {
+        var methodValue = getDeepObjectProp(msg, "params.data.content.method");
+        if(typeof(methodValue) === "string") {
+            msg.method = methodValue;
+        }
+    }
+
+    call(msg.method, msg.params, self, handleResult('success'), handleResult('error'));
 };
 
 var nullFn = function () {};
@@ -66,45 +92,59 @@ var call = function(methodName, params, worker, success, error) {
 	if (!error) {
 		error = nullFn;
 	}
-	
-	try {
-		// descend into API with dot-separated names
-		var methodParts = methodName.split('.'),
-		method = apiImpl;
 
-		for (var i=0; i<methodParts.length; i++) {
-			method = method[methodParts[i]];
-		}
+    // descend into API with dot-separated names
+    var methodParts = methodName.split('.'),
+        method = apiImpl;
 
-		if (typeof(method) !== 'function') {
-			// tried to call non-existent API method
-			error({message: methodName+' does not exist', type: "UNAVAILABLE"});
-		}
-		
-		method.call(worker, params, function() {
-			var strargs = "arguments could not be stringified";
-			try {
-				strargs = JSON.stringify(arguments);
-			} catch (e) { }
-			apiImpl.logging.log({
-				message: 'Call to '+methodName+'('+strparams+') succeeded: '+strargs,
-				level: 10
-			}, nullFn, nullFn);
-			success.apply(this, arguments);
-		}, function() {
-			var strargs = "arguments could not be stringified";
-			try {
-				strargs = JSON.stringify(arguments);
-			} catch (e) { }
-			apiImpl.logging.log({
-				message: 'Call to '+methodName+'('+strparams+') failed: '+strargs,
-				level: 30
-			}, nullFn, nullFn);
-			error.apply(this, arguments);
-		});
-	} catch (e) {
-		error({message: 'Unknown error: '+e, type: "UNEXPECTED_FAILURE"})
-	}
+    for (var i=0; i<methodParts.length; i++) {
+        method = method[methodParts[i]];
+    }
+
+    // if the method is not found in the top-level API, try to find it in the worker scope
+    if (typeof(method) === "undefined") {
+        // use the method name originally passed in
+        method = methodName;
+
+        if (method in worker && typeof(worker[method] === "function")) {
+            try {
+                worker[method]();
+            } catch (e) {
+                error({message: 'Unknown error: '+e, type: "UNEXPECTED_FAILURE"});
+            }
+        }
+    } else {
+        try {
+            if (typeof(method) !== 'function') {
+                // tried to call non-existent API method
+                error({message: methodName+' does not exist', type: "UNAVAILABLE"});
+            }
+
+            method.call(worker, params, function() {
+                var strargs = "arguments could not be stringified";
+                try {
+                    strargs = JSON.stringify(arguments);
+                } catch (e) { }
+                apiImpl.logging.log({
+                    message: 'Call to '+methodName+'('+strparams+') succeeded: '+strargs,
+                    level: 10
+                }, nullFn, nullFn);
+                success.apply(this, arguments);
+            }, function() {
+                var strargs = "arguments could not be stringified";
+                try {
+                    strargs = JSON.stringify(arguments);
+                } catch (e) { }
+                apiImpl.logging.log({
+                    message: 'Call to '+methodName+'('+strparams+') failed: '+strargs,
+                    level: 30
+                }, nullFn, nullFn);
+                error.apply(this, arguments);
+            });
+        } catch (e) {
+            error({message: 'Unknown error: '+e, type: "UNEXPECTED_FAILURE"})
+        }
+    }
 };
 
 var apiImpl = {
