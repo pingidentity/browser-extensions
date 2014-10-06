@@ -259,18 +259,16 @@ var apiImpl = {
 			success({id: tab.id, url: tab.url});
 		},
 		/**
-		 * BUG OnTabSelectionChanged not working in FF; success callback appears to be called correctly the first 
-		 * time the activate event is fired, but then never again.
-		 * NOTE Should only be called from the background script
+		 * OnTabSelectionChanged only calls the success callback once; if the background script wishes
+		 * to get the next tab selection, it must call this function again.
+		 *   TODO Figure out why success can only be called once below (subsquent calls to success appear to fail, 
+		 *   so I am guessing that the framework is doing something to the function reference after it is called)
 		 */
 		onTabSelectionChanged: function(params, success, error) {
-			apiImpl.logging.log({message: '2. [forge] registering onTabSelectionChanged', level: 50 }, nullFn, nullFn);
-
 			var tabs = require('sdk/tabs');
 			tabs.on('activate', function (tab) {
-				apiImpl.logging.log({message: '3. [forge] onTabSelectionChanged: ' + tab.id, level: 50 }, nullFn, nullFn);
+				apiImpl.logging.log({message: 'TABS [forge] onTabSelectionChanged: ' + tab.id, level: 50 }, nullFn, nullFn);
 				success({id: tab.id, url: tab.url});
-				apiImpl.logging.log({message: '6. [forge] callback complete', level: 50 }, nullFn, nullFn);
 			});
 		}
 	},

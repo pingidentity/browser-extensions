@@ -251,13 +251,9 @@ var apiImpl = {
 			);
 		},
 		/**
-		 * TODO Remove logging; kept in for now while the other browser implementations are being 
-		 * written.
+		 * NOTE Should only be called from the background script
 		 */
 		onTabSelectionChanged: function(params, success, error) {
- 			
-			forge.logging.error('2. [forge] registering onTabSelectionChanged');
-
  			chrome.tabs.onActivated.addListener(function(activeInfo) {
  				// onActivated does not contain url info which we need.
  				// Query the newly current tab to get both id and url info.
@@ -265,10 +261,8 @@ var apiImpl = {
 					function (tabs) {
 	  					if (typeof tabs !== "undefined") {
 	  						var tab = tabs[0];
-	  						forge.logging.error('3. [forge] onTabSelectionChanged: ' + tab.id);
+	  						forge.logging.error('TABS [forge] onTabSelectionChanged: ' + tab.id);
 	  						success({id: tab.id, url: tab.url});
-	  						forge.logging.error('6. [forge] callback complete');
-	  						forge.logging.error('-------------------------------------------------------');
 	  					}
 	  					else {
 	  						// TODO error
