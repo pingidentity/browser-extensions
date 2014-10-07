@@ -100,6 +100,10 @@ forge['tabs'] = {
 		internal.priv.call("tabs.onTabSelectionChanged", {}, success, null);	
 	},
 
+	'getAllTabs': function(success) {
+		internal.priv.call("tabs.getAllTabs", {}, success, null);		
+	},
+
 	/**
 	 * Close the tab that makes the call, intended to be called from foreground
 	 * @param {function({message: string}=} error

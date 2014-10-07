@@ -254,6 +254,7 @@ var apiImpl = {
 		 * NOTE Should only be called from the background script
 		 */
 		onTabSelectionChanged: function(params, success, error) {
+			forge.logging.error('TABS [forge] onTabSelectionChanged: register');
  			chrome.tabs.onActivated.addListener(function(activeInfo) {
  				// onActivated does not contain url info which we need.
  				// Query the newly current tab to get both id and url info.
@@ -269,6 +270,16 @@ var apiImpl = {
 	  					}
 					}
 				);
+			});
+		},
+		getAllTabs: function(params, success, error) {
+			chrome.tabs.getAllInWindow(null, function(tabs){
+				var result = [];
+				for (var i = 0; i < tabs.length; i++) {
+					var tab = tabs[i];
+					result[result.length] = {id: tab.id, url: tab.url};
+				}			
+				success(result);
 			});
 		}
 	},
