@@ -252,6 +252,33 @@ var apiImpl = {
 		},
 		closeCurrent: function () {
 			this.tab.close();
+		},
+		getCurrent: function(params, success, error)  {
+			var tabs = require('sdk/tabs');
+			var tab = tabs.activeTab;
+			success({id: tab.id, url: tab.url});
+		},
+		/**
+		 * OnTabSelectionChanged only calls the success callback once; if the background script wishes
+		 * to get the next tab selection, it must call this function again.
+		 *   TODO Figure out why success can only be called once below (subsquent calls to success appear to fail, 
+		 *   so I am guessing that the framework is doing something to the function reference after it is called)
+		 */
+		onTabSelectionChanged: function(params, success, error) {
+			apiImpl.logging.log({message: 'TABS [forge] onTabSelectionChanged register', level: 50 }, nullFn, nullFn);
+			var tabs = require('sdk/tabs');
+			tabs.on('activate', function (tab) {
+				apiImpl.logging.log({message: 'TABS [forge] onTabSelectionChanged: ' + tab.id, level: 50 }, nullFn, nullFn);
+				success({id: tab.id, url: tab.url});
+			});
+		},
+		getAllTabs: function(params, success, error) {
+			var tabs = require('sdk/tabs');
+			var result = [];
+			for each (var tab in tabs) {
+				result[result.length] = {id: tab.id, url: tab.url};	
+			}
+			success(result);
 		}
 	},
 	request: {
