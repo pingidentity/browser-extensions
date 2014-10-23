@@ -275,7 +275,7 @@ var apiImpl = {
 		getAllTabs: function(params, success, error) {
 			var tabs = require('sdk/tabs');
 			var result = [];
-			for each (var tab in tabs) {
+			for (var tab in tabs) {
 				result[result.length] = {id: tab.id, url: tab.url};	
 			}
 			success(result);
