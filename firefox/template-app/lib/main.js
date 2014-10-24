@@ -344,6 +344,15 @@ var apiImpl = {
 		},
 		clearAll: function(params, success, error) {
 			success(ss.storage.prefs = {});
+		},
+		getSync: function(params) {
+			return ss.storage.prefs[params.key] === undefined ? "undefined" : ss.storage.prefs[params.key];
+		},
+		setSync: function(params) {
+			ss.storage.prefs[params.key] = params.value;
+		},
+		clearSync: function(params) {
+			delete ss.storage.prefs[params.key];
 		}
 	},
 	file: {

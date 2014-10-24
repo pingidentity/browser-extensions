@@ -96,18 +96,18 @@ STDMETHODIMP CNativeExtensions::prefs_get(BSTR uuid,
     wstring value = Preferences(uuid).get(name);
 
     logger->debug(L"NativeExtensions::prefs_get"
-                  L" -> " + wstring_limit(value)); 
+                  L" -> " + wstring_limit(value));
 
     CComQIPtr<IDispatchEx> dispatch(success);
-    hr = CComDispatchDriver(dispatch).Invoke1((DISPID)0, 
+    hr = CComDispatchDriver(dispatch).Invoke1((DISPID)0,
                                               &CComVariant(value.c_str()));
     if (FAILED(hr)) {
         logger->debug(L"NativeExtensions::prefs_get failed"
-                      L" -> " + wstring(name) + 
+                      L" -> " + wstring(name) +
                       L" -> " + logger->parse(hr));
         return hr;
     }
-    
+
     return S_OK;
 }
 
@@ -135,17 +135,77 @@ STDMETHODIMP CNativeExtensions::prefs_set(BSTR uuid, BSTR name, BSTR value,
 
     wstring ret = Preferences(uuid).set(name, value);
     logger->debug(L"NativeExtensions::prefs_set"
-                  L" -> " + wstring_limit(ret)); 
+                  L" -> " + wstring_limit(ret));
 
     CComQIPtr<IDispatchEx> dispatch(success);
-    hr = CComDispatchDriver(dispatch).Invoke1((DISPID)0, 
+    hr = CComDispatchDriver(dispatch).Invoke1((DISPID)0,
                                               &CComVariant(ret.c_str()));
     if (FAILED(hr)) {
         logger->debug(L"NativeExtensions::prefs_set failed"
-                      L" -> " + wstring(name) + 
+                      L" -> " + wstring(name) +
                       L" -> " + wstring_limit(ret) +
                       L" -> " + logger->parse(hr));
         return hr;
+    }
+
+    return S_OK;
+}
+
+/**
+ * Method: NativeExtensions::prefs_getSync
+ * Synchronous implementation of prefs.get
+ * @param name
+ */
+STDMETHODIMP CNativeExtensions::prefs_getSync(BSTR uuid,
+                                              BSTR name)
+{
+    HRESULT hr;
+
+    logger->debug(L"NativeExtensions::prefs_getSync"
+                  L" -> " + wstring(uuid) +
+                  L" -> " + wstring(name));
+
+    wstring value = Preferences(uuid).get(name);
+
+    return value;
+}
+
+
+/**
+ * Method: NativeExtensions::prefs_setSync
+ *
+ * @param name
+ * @param value
+ */
+STDMETHODIMP CNativeExtensions::prefs_set(BSTR uuid, BSTR name, BSTR value)
+{
+    logger->debug(L"NativeExtensions::prefs_setSync"
+                  L" -> " + wstring(uuid) +
+                  L" -> " + wstring(name) +
+                  L" -> " + wstring_limit(value));
+
+    Preferences(uuid).set(name, value);
+
+    return S_OK;
+}
+
+
+/**
+ * Method: NativeExtensions::prefs_clearSync
+ *
+ * @param uuid
+ * @param name
+ */
+STDMETHODIMP CNativeExtensions::prefs_clearSync(BSTR uuid, BSTR name)
+{
+    logger->debug(L"NativeExtensions::prefs_clearSync"
+                  L" -> " + wstring(uuid) +
+                  L" -> " + wstring(name));
+
+    if (wstring(name) == L"*") {
+        Preferences(uuid).clear();
+    } else {
+        Preferences(uuid).clear(name);
     }
 
     return S_OK;

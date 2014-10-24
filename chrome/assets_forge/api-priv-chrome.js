@@ -179,6 +179,15 @@ var apiImpl = {
 		},
 		clearAll: function (params, success, error) {
 			success(window.localStorage.clear());
+		},
+		getSync: function (params) {
+			return window.localStorage.getItem(params.key);
+		},
+		setSync: function (params) {
+			return window.localStorage.setItem(params.key, params.value);
+		},
+		clearSync: function (params) {
+			return window.localStorage.removeItem(params.key);
 		}
 	},
 	request: {
