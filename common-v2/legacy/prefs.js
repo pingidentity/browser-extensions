@@ -100,7 +100,7 @@ forge['prefs'] = {
 	 * @param {string} key The key of your preference.
 	 */
 	'getSync': function (key) {
-		forge.internal.call("prefs.getSync", {
+		internal.priv.call("prefs.getSync", {
 			key: key.toString()
 		});
 	},
