@@ -116,7 +116,7 @@ forge['prefs'] = {
 		} else {
 			value = JSON.stringify(value);
 		}
-		forge.internal.call("prefs.setSync", {
+		internal.priv.call("prefs.setSync", {
 			key: key.toString(),
 			value: value
 		});
@@ -127,7 +127,7 @@ forge['prefs'] = {
 	 * @param {string} key Preference to forget.
 	 */
 	'clearSync': function(key) {
-		forge.internal.call("prefs.clearSync", {
+		internal.priv.call("prefs.clearSync", {
 			key: key.toString()
 		});
 	}

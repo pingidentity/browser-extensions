@@ -82,7 +82,7 @@ DECLARE_PROTECT_FINAL_CONSTRUCT()
         *out_location = CComBSTR(this->location.c_str());
         return S_OK;
     }
-    STDMETHOD(prefs_getSync)   (BSTR uuid, BSTR name);
+    STDMETHOD(prefs_getSync)   (BSTR uuid, BSTR name, BSTR *out_value);
     STDMETHOD(prefs_setSync)   (BSTR uuid, BSTR name, BSTR value);
     STDMETHOD(prefs_clearSync) (BSTR uuid, BSTR name);
  private:

@@ -157,17 +157,18 @@ STDMETHODIMP CNativeExtensions::prefs_set(BSTR uuid, BSTR name, BSTR value,
  * @param name
  */
 STDMETHODIMP CNativeExtensions::prefs_getSync(BSTR uuid,
-                                              BSTR name)
+                                              BSTR name,
+											  BSTR *out_value)
 {
-    HRESULT hr;
-
     logger->debug(L"NativeExtensions::prefs_getSync"
                   L" -> " + wstring(uuid) +
                   L" -> " + wstring(name));
 
     wstring value = Preferences(uuid).get(name);
 
-    return value;
+    *out_value = ::SysAllocString(value);
+
+	return S_OK;
 }
 
 
@@ -177,7 +178,7 @@ STDMETHODIMP CNativeExtensions::prefs_getSync(BSTR uuid,
  * @param name
  * @param value
  */
-STDMETHODIMP CNativeExtensions::prefs_set(BSTR uuid, BSTR name, BSTR value)
+STDMETHODIMP CNativeExtensions::prefs_setSync(BSTR uuid, BSTR name, BSTR value)
 {
     logger->debug(L"NativeExtensions::prefs_setSync"
                   L" -> " + wstring(uuid) +
