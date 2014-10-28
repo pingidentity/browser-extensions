@@ -67,7 +67,8 @@ interface INativeExtensions : IDispatch {
     [id(12)] HRESULT set_location ([in] BSTR location);
     [id(13)] HRESULT get_location ([out,retval] BSTR *out_location);
 
-    [id(14)] HRESULT prefs_getSync     ([in] BSTR uuid, [in] BSTR name);
+    [id(14)] HRESULT prefs_getSync     ([in] BSTR uuid, [in] BSTR name,
+		                                [out,retval] BSTR *out_value);
     [id(15)] HRESULT prefs_setSync     ([in] BSTR uuid, [in] BSTR name, [in] BSTR value);
     [id(16)] HRESULT prefs_clearSync   ([in] BSTR uuid, [in] BSTR name);
 };
