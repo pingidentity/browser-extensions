@@ -37,31 +37,36 @@ internal.priv.call = function (methodName, params, success, error) {
 		// tried to call non-existent API method
 		return error({message: methodName+' does not exist', type: 'UNAVAILABLE'});
 	}
-	
-	method(params, function () {
-		if (methodName === "logging.log") {
-			// Don't recurse the logger
-		} else {
+
+	// support for synchronous functions (if no success callback is provided)
+	if (success === nullFunction) {
+		return method.call(this, params);
+	} else {
+		method(params, function () {
+			if (methodName === "logging.log") {
+				// Don't recurse the logger
+			} else {
+				var strargs = "arguments could not be stringified";
+				try {
+					strargs = JSON.stringify(arguments);
+				} catch (e) { }
+				forge.logging.debug('Call to '+methodName+'('+strparams+') success: '+strargs);
+			}
+			success.apply(this, arguments);
+		}, function () {
 			var strargs = "arguments could not be stringified";
 			try {
 				strargs = JSON.stringify(arguments);
 			} catch (e) { }
-			forge.logging.debug('Call to '+methodName+'('+strparams+') success: '+strargs);
-		}
-		success.apply(this, arguments);
-	}, function () {
-		var strargs = "arguments could not be stringified";
-		try {
-			strargs = JSON.stringify(arguments);
-		} catch (e) { }
-		if (methodName === "logging.log") {
-			// Don't recurse the logger
-			alert('Call to '+methodName+'('+strparams+') failed: '+strargs);
-		} else {
-			forge.logging.warning('Call to '+methodName+'('+strparams+') failed: '+strargs);
-		}
-		error.apply(this, arguments);
-	});
+			if (methodName === "logging.log") {
+				// Don't recurse the logger
+				alert('Call to '+methodName+'('+strparams+') failed: '+strargs);
+			} else {
+				forge.logging.warning('Call to '+methodName+'('+strparams+') failed: '+strargs);
+			}
+			error.apply(this, arguments);
+		});
+	}
 };
 
 /**
