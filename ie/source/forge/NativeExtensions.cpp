@@ -166,7 +166,7 @@ STDMETHODIMP CNativeExtensions::prefs_getSync(BSTR uuid,
 
     wstring value = Preferences(uuid).get(name);
 
-    *out_value = ::SysAllocString(value);
+    *out_value = ::SysAllocString(value.c_str());
 
 	return S_OK;
 }

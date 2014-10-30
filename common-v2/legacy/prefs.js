@@ -113,8 +113,8 @@ forge['prefs'] = {
 	'setSync': function (key, value) {
 		if (value === undefined) {
 			value = "undefined";
-		} else {
-			value = JSON.stringify(value);
+		} else if (typeof value !== "string") {
+				value = JSON.stringify(value);
 		}
 		return internal.priv.call("prefs.setSync", {
 			key: key.toString(),

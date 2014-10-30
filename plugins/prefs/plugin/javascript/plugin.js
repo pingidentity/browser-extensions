@@ -99,7 +99,7 @@ forge['prefs'] = {
 	 * @param {string} key The key of your preference.
 	 */
 	'getSync': function (key) {
-		forge.internal.call("prefs.getSync", {
+		return forge.internal.call("prefs.getSync", {
 			key: key.toString()
 		});
 	},
@@ -112,10 +112,10 @@ forge['prefs'] = {
 	'setSync': function (key, value) {
 		if (value === undefined) {
 			value = "undefined";
-		} else {
-			value = JSON.stringify(value);
+		} else if (typeof value !== "string") {
+				value = JSON.stringify(value);
 		}
-		forge.internal.call("prefs.setSync", {
+		return forge.internal.call("prefs.setSync", {
 			key: key.toString(),
 			value: value
 		});
@@ -126,7 +126,7 @@ forge['prefs'] = {
 	 * @param {string} key Preference to forget.
 	 */
 	'clearSync': function(key) {
-		forge.internal.call("prefs.clearSync", {
+		return forge.internal.call("prefs.clearSync", {
 			key: key.toString()
 		});
 	}
