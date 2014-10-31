@@ -194,31 +194,35 @@ STDMETHODIMP CNativeControls::popup_visible(BSTR uuid, BOOL isVisible, POINT poi
         return E_FAIL;
     }
 
-    // get screen metrics
-    DWORD screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
-    if (point.x > (int)(screenWidth / 2)) {
-        popup->alignment = PopupWindow::left;
-    } else {
-        popup->alignment = PopupWindow::right;
-    }
+    if (isVisible) {
+        // get screen metrics
+        DWORD screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
+        if (point.x > (int)(screenWidth / 2)) {
+            popup->alignment = PopupWindow::left;
+        } else {
+            popup->alignment = PopupWindow::right;
+        }
 
-    // update popup position & visibility
-    RECT rect;
-    popup->GetClientRect(&rect);
-    int width  = rect.right - rect.left;
-    int height = rect.bottom - rect.top;
-    int origin = point.x;
-    if (popup->alignment == PopupWindow::left) {
-        origin = origin - (width - (PopupWindow::TAB_SIZE * 3)) - 3;
-    } else {
-        origin = origin - (PopupWindow::TAB_SIZE * 1) - 3;
+        // update popup position & visibility
+        RECT rect;
+        popup->GetClientRect(&rect);
+        int width  = rect.right - rect.left;
+        int height = rect.bottom - rect.top;
+        int origin = point.x;
+        if (popup->alignment == PopupWindow::left) {
+            origin = origin - (width - (PopupWindow::TAB_SIZE * 3)) - 3;
+        } else {
+            origin = origin - (PopupWindow::TAB_SIZE * 1) - 3;
+        }
+        popup->MoveWindow(origin, 
+                          point.y, 
+                          width, 
+                          height);
+        popup->hiddenBrowser.buttonPosition = point;
+        popup->ShowWindow(SW_SHOW);
+    }else{
+        popup->ShowWindow(SW_HIDE);
     }
-    popup->MoveWindow(origin, 
-                      point.y, 
-                      width, 
-                      height);
-    popup->hiddenBrowser.buttonPosition = point;
-    popup->ShowWindow(SW_SHOW);
     
     return S_OK;
 }
@@ -242,6 +246,32 @@ STDMETHODIMP CNativeControls::popup_hwnd (BSTR uuid, BOOL *out_visible, ULONG *o
     *out_visible = TRUE;
     *out_hwnd = (ULONG)popup->m_hWnd;
     return S_OK;
+}
+
+STDMETHODIMP CNativeControls::close_popup(BSTR uuid,
+                                          IDispatch *success,
+                                          IDispatch *error)
+{
+    HRESULT hr;
+    wstring w_uuid(uuid);
+    POINT point = { 0, 0 }; // empty point, should be unused
+
+    logger->debug(L"CNativeControls::close_popup"
+                  L" -> " + w_uuid +
+                  L" -> " + boost::lexical_cast<wstring>(success) +
+                  L" -> " + boost::lexical_cast<wstring>(error));
+
+    hr = this->popup_visible(uuid, false, point);
+    if (FAILED(hr)) {
+        logger->error(L"FrameServer::close_popup failed to close popup"
+                      L" -> " + logger->parse(hr));
+        return CComDispatchDriver(error)
+            .Invoke1((DISPID)0, 
+                     &CComVariant(L"{ 'message' : 'failed to close popup' }"));
+    }
+
+    logger->debug(L"CNativeControls::close_popup succeeeded");
+    return CComDispatchDriver(success).Invoke0((DISPID)0);
 }
 
 
