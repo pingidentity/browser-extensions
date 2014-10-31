@@ -16,10 +16,6 @@ forge['prefs'] = {
 				try {
 					value = JSON.parse(value);
 				} catch (e) {
-					error({
-						message: e.toString()
-					});
-					return;
 				}
 			}
 			success(value);
