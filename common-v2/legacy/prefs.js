@@ -16,10 +16,6 @@ forge['prefs'] = {
 				try {
 					value = JSON.parse(value);
 				} catch (e) {
-					error({
-						message: e.toString()
-					});
-					return;
 				}
 			}
 			success(value);
@@ -36,7 +32,7 @@ forge['prefs'] = {
 	'set': function (key, value, success, error) {
 		if (value === undefined) {
 			value = "undefined";
-		} else {
+		} else if (typeof value !== "string") {
 			value = JSON.stringify(value);
 		}
 		internal.priv.call("prefs.set", {
@@ -114,7 +110,7 @@ forge['prefs'] = {
 		if (value === undefined) {
 			value = "undefined";
 		} else if (typeof value !== "string") {
-				value = JSON.stringify(value);
+			value = JSON.stringify(value);
 		}
 		return internal.priv.call("prefs.setSync", {
 			key: key.toString(),
