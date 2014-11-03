@@ -81,7 +81,10 @@ DECLARE_PROTECT_FINAL_CONSTRUCT()
     STDMETHOD(get_location) (BSTR *out_location) {
         *out_location = CComBSTR(this->location.c_str());
         return S_OK;
-    }    
+    }
+    STDMETHOD(prefs_getSync)   (BSTR uuid, BSTR name);
+    STDMETHOD(prefs_setSync)   (BSTR uuid, BSTR name, BSTR value);
+    STDMETHOD(prefs_clearSync) (BSTR uuid, BSTR name);
  private:
     UINT tabId;
     wstring location;

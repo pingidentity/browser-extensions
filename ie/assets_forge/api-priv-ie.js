@@ -246,7 +246,7 @@ var apiImpl = {
          * @param {Function} error Receives an object with message and otherwise undefined schema.
          */
         get: function(params, success, error) {
-            window.extensions.prefs_get(forge.config.uuid, params.key, 
+            window.extensions.prefs_get(forge.config.uuid, params.key,
                                         function(value) {
                                             try {
                                                 value = JSON.parse(value);
@@ -361,6 +361,39 @@ var apiImpl = {
             window.extensions.prefs_clear(forge.config.uuid, "*", 
                                           success ? success : function(){},
                                           error ? error : function(){});
+        },
+
+        /**
+         * Retrieve preference from localStorage.
+         *
+         * @param {Object} params Should have a "key" attribute set.
+         */
+        getSync: function(params) {
+            window.extensions.prefs_getSync(forge.config.uuid, params.key);
+        },
+
+        /**
+         * Set a preference in localStorage
+         *
+         * @param {Object} params should have "key" and "value" attributes.
+         */
+        setSync: function(params) {
+            var json = "object could not be stringified";
+            try {
+                json = safe_jstringify(params.value);
+            } catch (e) { error(json); }
+            window.extensions.prefs_setSync(forge.config.uuid,
+                params.key, json);
+        },
+
+        /**
+         * Expunge a single persisted setting from localStorage,
+         * reverting it back to its default value (if available).
+         *
+         * @param {String} key Preference to forget.
+         */
+        clearSync: function(params) {
+            window.extensions.prefs_clearSync(forge.config.uuid, params.key);
         }
     },
 

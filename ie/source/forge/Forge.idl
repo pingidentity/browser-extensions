@@ -51,11 +51,11 @@ interface INativeExtensions : IDispatch {
     [id(6)]  HRESULT prefs_clear ([in] BSTR uuid, [in] BSTR name,
                                   [in] IDispatch *success, 
                                   [in] IDispatch *error);
-    [id(7)]  HRESULT getURL      ([in] BSTR url, 
+    [id(7)]  HRESULT getURL      ([in] BSTR url,
                                   [out,retval] BSTR *out_url);
-    [id(8)]  HRESULT xhr         ([in] BSTR method, 
-                                  [in] BSTR url, 
-                                  [in] BSTR data, 
+    [id(8)]  HRESULT xhr         ([in] BSTR method,
+                                  [in] BSTR url,
+                                  [in] BSTR data,
                                   [in] BSTR contentType,
                                   [in] BSTR headers,
                                   [in] IDispatch *success,
@@ -66,6 +66,10 @@ interface INativeExtensions : IDispatch {
     [id(11)] HRESULT get_tabId    ([out,retval] UINT *out_tabId);
     [id(12)] HRESULT set_location ([in] BSTR location);
     [id(13)] HRESULT get_location ([out,retval] BSTR *out_location);
+
+    [id(14)] HRESULT prefs_getSync     ([in] BSTR uuid, [in] BSTR name);
+    [id(15)] HRESULT prefs_setSync     ([in] BSTR uuid, [in] BSTR name, [in] BSTR value);
+    [id(16)] HRESULT prefs_clearSync   ([in] BSTR uuid, [in] BSTR name);
 };
 
 

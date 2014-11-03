@@ -81,7 +81,29 @@ forge['tabs'] = {
 		}
 		internal.priv.call("tabs.open", options, success, error);
 	},
-	
+
+	/**
+	 * Returns information on the currently selected tab
+	 * 
+	 * @param {function({id: string, url: string})=} success
+	 */
+	'getCurrent': function(success) {
+		internal.priv.call("tabs.getCurrent", {}, success, null);	
+	},
+
+	/**
+	 * Fires whenever the tab selection changes
+	 * 
+	 * @param {function({id: string, url: string})=} success
+	 */
+	'onTabSelectionChanged': function(success) {
+		internal.priv.call("tabs.onTabSelectionChanged", {}, success, null);	
+	},
+
+	'getAllTabs': function(success) {
+		internal.priv.call("tabs.getAllTabs", {}, success, null);		
+	},
+
 	/**
 	 * Close the tab that makes the call, intended to be called from foreground
 	 * @param {function({message: string}=} error

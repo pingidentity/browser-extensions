@@ -252,6 +252,37 @@ var apiImpl = {
 		},
 		closeCurrent: function () {
 			this.tab.close();
+		},
+		getCurrent: function(params, success, error)  {
+			var tabs = require('sdk/tabs');
+			var tab = tabs.activeTab;
+			success({id: tab.id, url: tab.url});
+		},
+		/**
+		 * OnTabSelectionChanged only calls the success callback once; if the background script wishes
+		 * to get the next tab selection, it must call this function again.
+		 *   TODO Figure out why success can only be called once below (subsquent calls to success appear to fail, 
+		 *   so I am guessing that the framework is doing something to the function reference after it is called)
+		 */
+		onTabSelectionChanged: function(params, success, error) {
+			apiImpl.logging.log({message: 'TABS [forge] onTabSelectionChanged register', level: 50 }, nullFn, nullFn);
+			var tabs = require('sdk/tabs');
+			tabs.on('activate', function (tab) {
+				apiImpl.logging.log({message: 'TABS [forge] onTabSelectionChanged: ' + tab.id, level: 50 }, nullFn, nullFn);
+				success({id: tab.id, url: tab.url});
+			});
+		},
+		getAllTabs: function(params, success, error) {
+			var tabs = require('sdk/tabs');
+			var result = [];
+
+			for (var tab = 0; tab < tabs.length; tab++) {
+				result[result.length] = {
+					id: tabs.__proto__[tab].id,
+					url: tabs.__proto__[tab].url
+				};
+			}
+			success(result);
 		}
 	},
 	request: {
@@ -264,7 +295,7 @@ var apiImpl = {
 				error && error({
 					message: 'Request timed out',
 					type: 'EXPECTED_FAILURE'
-				});;
+				});
 			}, params.timeout ? params.timeout : 60000);
 		
 			var req = request.Request({
@@ -313,6 +344,15 @@ var apiImpl = {
 		},
 		clearAll: function(params, success, error) {
 			success(ss.storage.prefs = {});
+		},
+		getSync: function(params) {
+			return ss.storage.prefs[params.key] === undefined ? "undefined" : ss.storage.prefs[params.key];
+		},
+		setSync: function(params) {
+			ss.storage.prefs[params.key] = params.value;
+		},
+		clearSync: function(params) {
+			delete ss.storage.prefs[params.key];
 		}
 	},
 	file: {
@@ -343,7 +383,7 @@ def get_ba_icon(ba):
 	button.addListener(function (options, tbb) {
 		if (options.url) {
 			// Create and destroy popups on demand (like Chrome)
-			var panel = require("forge-panel").Panel({
+			var panel = require("panel").Panel({
 				contentURL: options.url,
 				contentScriptFile: data.url("forge/api-firefox-proxy.js"),
 				contentScriptWhen: "start",

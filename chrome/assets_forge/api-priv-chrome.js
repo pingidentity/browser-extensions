@@ -179,6 +179,15 @@ var apiImpl = {
 		},
 		clearAll: function (params, success, error) {
 			success(window.localStorage.clear());
+		},
+		getSync: function (params) {
+			return window.localStorage.getItem(params.key);
+		},
+		setSync: function (params) {
+			return window.localStorage.setItem(params.key, params.value);
+		},
+		clearSync: function (params) {
+			return window.localStorage.removeItem(params.key);
 		}
 	},
 	request: {
@@ -236,6 +245,51 @@ var apiImpl = {
 					type: 'UNEXPECTED_FAILURE'
 				});
 			}
+		},
+		getCurrent: function(params, success, error) {
+			chrome.tabs.query({ currentWindow: true, active: true }, 
+				function (tabs) {
+  					if (typeof tabs !== "undefined") {
+  						var tab = tabs[0];
+  						success({id: tab.id, url: tab.url});
+  					}
+  					else {
+  						// TODO error
+  					}
+				}
+			);
+		},
+		/**
+		 * NOTE Should only be called from the background script
+		 */
+		onTabSelectionChanged: function(params, success, error) {
+			forge.logging.error('TABS [forge] onTabSelectionChanged: register');
+ 			chrome.tabs.onActivated.addListener(function(activeInfo) {
+ 				// onActivated does not contain url info which we need.
+ 				// Query the newly current tab to get both id and url info.
+ 				chrome.tabs.query({ currentWindow: true, active: true }, 
+					function (tabs) {
+	  					if (typeof tabs !== "undefined") {
+	  						var tab = tabs[0];
+	  						forge.logging.error('TABS [forge] onTabSelectionChanged: ' + tab.id);
+	  						success({id: tab.id, url: tab.url});
+	  					}
+	  					else {
+	  						// TODO error
+	  					}
+					}
+				);
+			});
+		},
+		getAllTabs: function(params, success, error) {
+			chrome.tabs.getAllInWindow(null, function(tabs){
+				var result = [];
+				for (var i = 0; i < tabs.length; i++) {
+					var tab = tabs[i];
+					result[result.length] = {id: tab.id, url: tab.url};
+				}			
+				success(result);
+			});
 		}
 	},
 	button: {

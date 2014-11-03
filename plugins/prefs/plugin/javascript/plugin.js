@@ -92,5 +92,42 @@ forge['prefs'] = {
 	 */
 	'clearAll': function(success, error) {
 		forge.internal.call("prefs.clearAll", {}, success, error);
+	},
+	/**
+	 * Get a preference stored by your application.
+	 *
+	 * @param {string} key The key of your preference.
+	 */
+	'getSync': function (key) {
+		forge.internal.call("prefs.getSync", {
+			key: key.toString()
+		});
+	},
+	/**
+	 * Set a preference.
+	 *
+	 * @param {string} key The preference key.
+	 * @param {string} value The preference value.
+	 */
+	'setSync': function (key, value) {
+		if (value === undefined) {
+			value = "undefined";
+		} else {
+			value = JSON.stringify(value);
+		}
+		forge.internal.call("prefs.setSync", {
+			key: key.toString(),
+			value: value
+		});
+	},
+	/**
+	 * Expunge a single persisted setting, reverting it back to its default value (if available).
+	 *
+	 * @param {string} key Preference to forget.
+	 */
+	'clearSync': function(key) {
+		forge.internal.call("prefs.clearSync", {
+			key: key.toString()
+		});
 	}
 };

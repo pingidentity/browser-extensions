@@ -1,10 +1,10 @@
 {
 	"name": "f",
-	"version": "VERSION_HERE",
-	"fullName": "APP_NAME_HERE",
-	"id": "PACKAGE_NAME_HERE",
-	"description": "DESCRIPTION_HERE",
-	"author": "AUTHOR_HERE",
+	"version": ${json.dumps(value_of("version", ""))},
+	"fullName": ${json.dumps(value_of("name", ""))},
+	"id": ${json.dumps(value_of("uuid", ""))},
+	"description": ${json.dumps(value_of("description", ""))},
+	"author": ${json.dumps(value_of("author", ""))},
 	"permissions": {
 		"unsafe-content-script": true
 	},
