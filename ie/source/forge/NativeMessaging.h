@@ -64,6 +64,7 @@ DECLARE_PROTECT_FINAL_CONSTRUCT()
     STDMETHOD(bg_listen)(BSTR uuid, BSTR type, IDispatch *callback, IDispatch *error);
     STDMETHOD(bg_broadcast)(BSTR uuid, BSTR type, BSTR content, IDispatch *callback, IDispatch *error);
     STDMETHOD(bg_toFocussed)(BSTR uuid, BSTR type, BSTR content, IDispatch *callback, IDispatch *error);
+    STDMETHOD(active_tab_listen) (BSTR uuid, IDispatch *callback);
 
  protected:
     HRESULT shutdown();
@@ -74,6 +75,7 @@ DECLARE_PROTECT_FINAL_CONSTRUCT()
 
     // tabs
     Tab m_activeTab;
+    CComPtr<IDispatch> m_activeTabCallback;
 
     std::map<wstring, uintset> m_clients; // { uuid, [instanceId] }
 };
