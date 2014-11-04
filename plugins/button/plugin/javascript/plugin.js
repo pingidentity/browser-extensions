@@ -1,5 +1,13 @@
 forge['button'] = {
 	/**
+	 * Closes the popup launched from the toolbar button (with optional callbacks)
+	 * @param {function} [success]
+	 * @param {function} [error]
+	 */
+	'closePopup': function (success, error) {
+		forge.internal.call("button.closePopup", success, error);
+	},
+	/**
 	 * Change the URL of the icon displayed in the browser button
 	 * 
 	 * @param {string} url URL to the icon

@@ -62,7 +62,7 @@ public:
     STDMETHOD(button_setBadgeBackgroundColor) (BSTR uuid, BYTE r, BYTE g, BYTE b, BYTE a,
                                                IDispatch *success, IDispatch *error);
     STDMETHOD(popup_hwnd)       (BSTR uuid, BOOL *out_visible, ULONG *out_hwnd);
-    STDMETHOD(close_popup)      (BSTR uuid, IDispatch *success, IDispatch *error);
+    STDMETHOD(button_closePopup) (BSTR uuid, IDispatch *success, IDispatch *error);
 
  private:
     unsigned int instanceCounter;

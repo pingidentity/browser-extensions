@@ -519,6 +519,17 @@ var apiImpl = {
     },
 
     button: {
+        closePopup: function(success, error) {
+            loggerpriv("button.closePopup" +
+            " -> " + forge.config.uuid +
+            " -> " + typeof success +
+            " -> " + typeof error);
+
+            window.controls.button_closePopup(
+                forge.config.uuid,
+                typeof success === "function" ? success : function(){},
+                typeof error   === "function" ? error   : function(){});
+        },
         setIcon: function(url, success, error) {
             loggerpriv("button.setIcon" +
                        " -> " + forge.config.uuid +

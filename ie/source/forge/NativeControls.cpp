@@ -248,29 +248,29 @@ STDMETHODIMP CNativeControls::popup_hwnd (BSTR uuid, BOOL *out_visible, ULONG *o
     return S_OK;
 }
 
-STDMETHODIMP CNativeControls::close_popup(BSTR uuid,
-                                          IDispatch *success,
-                                          IDispatch *error)
+STDMETHODIMP CNativeControls::button_closePopup(BSTR uuid,
+                                                IDispatch *success,
+                                                IDispatch *error)
 {
     HRESULT hr;
     wstring w_uuid(uuid);
     POINT point = { 0, 0 }; // empty point, should be unused
 
-    logger->debug(L"CNativeControls::close_popup"
+    logger->debug(L"CNativeControls::button_closePopup"
                   L" -> " + w_uuid +
                   L" -> " + boost::lexical_cast<wstring>(success) +
                   L" -> " + boost::lexical_cast<wstring>(error));
 
     hr = this->popup_visible(uuid, false, point);
     if (FAILED(hr)) {
-        logger->error(L"FrameServer::close_popup failed to close popup"
+        logger->error(L"FrameServer::button_closePopup failed to close popup"
                       L" -> " + logger->parse(hr));
         return CComDispatchDriver(error)
             .Invoke1((DISPID)0, 
                      &CComVariant(L"{ 'message' : 'failed to close popup' }"));
     }
 
-    logger->debug(L"CNativeControls::close_popup succeeeded");
+    logger->debug(L"CNativeControls::button_closePopup succeeded");
     return CComDispatchDriver(success).Invoke0((DISPID)0);
 }
 

@@ -182,9 +182,9 @@ interface INativeControls : IDispatch {
                                 [out]        BOOL  *out_visible,
                                 [out,retval] ULONG *out_hwnd);
 
-    [id(12)] HRESULT close_popup([in]        BSTR uuid,
-                                 [in]        IDispatch *success,
-                                 [in]        IDispatch *error);
+    [id(12)] HRESULT button_closePopup([in]        BSTR uuid,
+                                       [in]        IDispatch *success,
+                                       [in]        IDispatch *error);
 };
 
 
