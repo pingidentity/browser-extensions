@@ -369,7 +369,7 @@ var apiImpl = {
          * @param {Object} params Should have a "key" attribute set.
          */
         getSync: function(params) {
-            window.extensions.prefs_getSync(forge.config.uuid, params.key);
+            return window.extensions.prefs_getSync(forge.config.uuid, params.key);
         },
 
         /**

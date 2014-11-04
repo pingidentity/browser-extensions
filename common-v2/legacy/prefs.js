@@ -96,9 +96,18 @@ forge['prefs'] = {
 	 * @param {string} key The key of your preference.
 	 */
 	'getSync': function (key) {
-		return internal.priv.call("prefs.getSync", {
+		var value = internal.priv.call("prefs.getSync", {
 			key: key.toString()
 		});
+		if (value === "undefined") {
+			value = undefined;
+		} else {
+			try {
+				value = JSON.parse(value);
+			} catch (e) {
+			}
+		}
+		return value;
 	},
 	/**
 	 * Set a preference.

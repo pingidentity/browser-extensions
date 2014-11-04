@@ -346,7 +346,7 @@ var apiImpl = {
 			success(ss.storage.prefs = {});
 		},
 		getSync: function(params) {
-			return ss.storage.prefs[params.key] === undefined ? "undefined" : ss.storage.prefs[params.key];
+			return ss.storage.prefs[params.key] === undefined ? null : ss.storage.prefs[params.key];
 		},
 		setSync: function(params) {
 			ss.storage.prefs[params.key] = params.value;
