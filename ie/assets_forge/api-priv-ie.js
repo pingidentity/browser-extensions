@@ -515,6 +515,19 @@ var apiImpl = {
                        " -> " + typeof success + 
                        " -> " + typeof error);
             error({ message: "cannot call closeCurrent() from background" });
+        },
+
+        onTabSelectionChanged: function(params, success, error) {
+            loggerpriv("tabs.onTabSelectionChanged" +
+            " -> " + params +
+            " -> " + typeof success +
+            " -> " + typeof error);
+            window.messaging.active_tab_listen(
+                forge.config.uuid,
+                function(tabInfo) {
+                    if (typeof success !== "function") return;
+                    success({ id: tabInfo.id, url: tabInfo.url });
+                });
         }
     },
 
