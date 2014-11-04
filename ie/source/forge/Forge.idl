@@ -128,6 +128,8 @@ interface INativeMessaging : IDispatch {
                                    [in] BSTR content,
                                    [in] IDispatch *callback,
                                    [in] IDispatch *error);
+    [id(12)] HRESULT active_tab_listen([in] BSTR uuid,
+                                       [in] IDispatch *callback);
 
 };
 

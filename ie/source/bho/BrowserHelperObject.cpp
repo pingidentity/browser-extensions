@@ -531,15 +531,17 @@ void __stdcall CBrowserHelperObject::OnDocumentComplete(IDispatch *dispatch,
                       L" -> " + i->first);
     }
 
-    /*// Test in-process IAccessible access
+    /*
+    // Test in-process IAccessible access
     SHANDLE_PTR phwnd;
-    hr = webBrowser2->get_HWND(&phwnd);
+    HRESULT hr = webBrowser2->get_HWND(&phwnd);
     HWND hwnd = reinterpret_cast<HWND>(phwnd);
     AccessibleBrowser ab(hwnd);
     wstringvector tabs = ab.tabs();
     for (wstringvector::const_iterator tab = tabs.begin(); tab != tabs.end(); tab++) {
-        logger->debug(L"BrowserHelperObject::OnDocumentComplete -> " + *tab);
-        }*/
+        logger->debug(L"BrowserHelperObject::OnDocumentComplete tab -> " + *tab);
+    }
+    */
 }
 
 
@@ -659,17 +661,17 @@ void __stdcall CBrowserHelperObject::OnWindowStateChanged(DWORD flags, DWORD mas
     m_webBrowser2->get_LocationURL(&url);
     CComBSTR title;
     m_webBrowser2->get_LocationName(&title);
-    /*logger->debug(L"CBrowserHelperObject::OnWindowStateChanged" 
+    logger->debug(L"CBrowserHelperObject::OnWindowStateChanged" 
                   L" -> " + boost::lexical_cast<wstring>(flags) +
                   L" -> " + boost::lexical_cast<wstring>(m_instanceId) +
                   L" -> " + wstring(url) +
-                  L" -> " + wstring(title));*/
+                  L" -> " + wstring(title));
         
     bool focused = false;
     switch (flags) {
     case OLECMDIDF_WINDOWSTATE_USERVISIBLE:   break;
     case OLECMDIDF_WINDOWSTATE_ENABLED:       break;
-    case 3:   // MSDN docs are _WRONG_
+    case 3:   // MSDN docs are _WRONG_ ... no they aren't, it's a bitmask
         focused = true;
         break;
     }

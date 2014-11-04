@@ -60,18 +60,30 @@ STDMETHODIMP CNativeMessaging::tabs_set(BSTR uuid,
                                         UINT instanceId,
                                         BSTR url, BSTR title, BOOL focused)
 {
-    /*logger->debug(L"NativeMessaging::tabs_set"
+    logger->debug(L"NativeMessaging::tabs_set"
                   L" -> " + wstring(uuid) +
                   L" -> " + boost::lexical_cast<wstring>(instanceId) +
                   L" -> " + wstring(url) +
                   L" -> " + wstring(title) +
-                  L" -> " + boost::lexical_cast<wstring>(focused));*/
+                  L" -> " + boost::lexical_cast<wstring>(focused));
 
     if (focused) {
         m_activeTab.id       = instanceId;
         m_activeTab.url      = url;
         m_activeTab.title    = title;
         m_activeTab.selected = focused ? true : false;
+
+        // Invoke the active tab callback, if necessary
+        if (m_activeTabCallback) {
+           UINT tabId = 0; 
+           HRESULT hr = this->tabs_active(uuid, m_activeTabCallback.p, &tabId);
+           if (FAILED(hr)) {
+               logger->error(L"NativeMessaging::tabs_set "
+                       L"failed to invoke active tab callback"
+                       L" -> " + logger->parse(hr));
+               return hr;
+           }
+        }
     }
 
     // TODO save tab info
@@ -79,6 +91,15 @@ STDMETHODIMP CNativeMessaging::tabs_set(BSTR uuid,
     return S_OK;
 }
 
+STDMETHODIMP CNativeMessaging::active_tab_listen(BSTR uuid, IDispatch *callback)
+{
+    logger->debug(L"NativeMessaging::active_tab_list"
+                  L" -> " + wstring(uuid) +
+                  L" -> " + boost::lexical_cast<wstring>(callback));
+    this->m_activeTabCallback = CComPtr<IDispatch>(callback);
+
+    return S_OK;
+}
 
 /**
  * Method: NativeMessaging::tabs_active
@@ -91,9 +112,9 @@ STDMETHODIMP CNativeMessaging::tabs_active(BSTR uuid, IDispatch *callback, UINT 
 {
     HRESULT hr;
 
-    /*logger->debug(L"NativeMessaging::tabs_active"
+    logger->debug(L"NativeMessaging::tabs_active"
                   L" -> " + wstring(uuid) +
-                  L" -> " + boost::lexical_cast<wstring>(callback));*/
+                  L" -> " + boost::lexical_cast<wstring>(callback));
 
     *out_tabId = m_activeTab.id;
 
