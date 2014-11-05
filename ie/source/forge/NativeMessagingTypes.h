@@ -63,6 +63,7 @@ class Tab {
 
     // lifecycle
     Tab();
+    Tab(int id, bool selected, const wstring &url, const wstring& title);
     Tab(int id, int index, int windowId, 
         bool incognito, bool selected, bool pinned, 
         const wstring& url, const wstring& title, 

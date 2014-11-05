@@ -528,6 +528,27 @@ var apiImpl = {
                     if (typeof success !== "function") return;
                     success({ id: tabInfo.id, url: tabInfo.url });
                 });
+        },
+
+        getAllTabs: function(params, success, error) {
+            loggerpriv("tabs.getAllTabs" +
+                    " -> " + params +
+                    " -> " + typeof success +
+                    " -> " + typeof error);
+            window.messaging.get_tabs(
+                    forge.config.uuid,
+                    function(tabsVbArray) {
+                        if (typeof success !== "function") return;
+
+                        var tabs = new VBArray(tabsVbArray).toArray();
+                        var result = [];
+                        for (var i = 0; i < tabs.length; i++) {
+                            var tab = tabs[i];
+                            result[result.length] = {id: tab.id, url: tab.url};
+                        }			
+                        success(result);
+                    },
+                    typeof error === "function" ? error : function(msg){});
         }
     },
 

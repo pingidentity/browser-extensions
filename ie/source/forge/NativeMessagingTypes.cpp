@@ -29,6 +29,20 @@ Tab::Tab()
 {
 }
 
+Tab::Tab(int id, bool selected, const wstring &url, const wstring& title)
+    : id(id),
+      index(0),
+      windowId(0),
+      incognito(false),
+      selected(selected),
+      pinned(false),
+      url(url),
+      title(title),
+      favIconUrl(L""),
+      status(L"")
+{
+}
+
 Tab::Tab(int id, int index, int windowId, 
          bool _incognito, bool selected, bool pinned, 
          const wstring& url, const wstring& title, 
