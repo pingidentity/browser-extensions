@@ -67,6 +67,13 @@ STDMETHODIMP CNativeMessaging::tabs_set(BSTR uuid,
                   L" -> " + wstring(title) +
                   L" -> " + boost::lexical_cast<wstring>(focused));
 
+    // Store the tab data for later retrieval
+    TabMap::const_iterator findIter = this->m_tabs.find(instanceId);
+    if (findIter == this->m_tabs.end()) {
+        Tab tab(instanceId, focused ? true : false, url, title);
+        this->m_tabs.insert(std::pair<int, Tab>(instanceId, tab));
+    }
+
     if (focused) {
         m_activeTab.id       = instanceId;
         m_activeTab.url      = url;
@@ -85,8 +92,6 @@ STDMETHODIMP CNativeMessaging::tabs_set(BSTR uuid,
            }
         }
     }
-
-    // TODO save tab info
 
     return S_OK;
 }
@@ -151,6 +156,77 @@ STDMETHODIMP CNativeMessaging::tabs_active(BSTR uuid, IDispatch *callback, UINT 
     return hr;
 }
 
+STDMETHODIMP CNativeMessaging::get_tabs(BSTR uuid, IDispatch *success, IDispatch *error)
+{
+    const wchar_t * const GENERIC_ERR_MSG = L"{ 'message' : 'failed to retrieve tabs' }";
+
+    HRESULT hr = S_OK;
+
+    CComPtr<ITypeInfo> tabT;
+    hr = ::CreateDispTypeInfo(&Tab::Interface, LOCALE_SYSTEM_DEFAULT, &tabT);
+    if (FAILED(hr) || !tabT) {
+        logger->error(L"NativeMessagging::get_tabs "
+                      L"failed to create tabT"
+                      L" -> " + logger->parse(hr));
+        return CComDispatchDriver(error).Invoke1((DISPID)0, &CComVariant(GENERIC_ERR_MSG));
+    }
+
+
+    // Build up an array of tabs
+    CComSafeArray<VARIANT> tabsArray;
+    hr = tabsArray.Create((ULONG)this->m_tabs.size());
+    if ( FAILED(hr) ) {
+        logger->error(L"NativeMessaging::get_tabs "
+                      L"failed to create tabsArray"
+                      L" -> " + logger->parse(hr));
+        return CComDispatchDriver(error).Invoke1((DISPID)0, &CComVariant(GENERIC_ERR_MSG));
+    }
+
+    try {
+        int index = 0;
+        for (TabMap::iterator i = this->m_tabs.begin();
+                i != this->m_tabs.end();
+                ++i)
+        {
+            Tab &tab = i->second;
+
+            CComPtr<IUnknown> tabI;
+            hr = ::CreateStdDispatch(NULL, &tab, tabT, &tabI);
+            if (FAILED(hr) || !tabI) {
+                logger->error(L"NativeMessaging::get_tabs "
+                              L"failed to create tabI:"
+                              L" -> " + boost::lexical_cast<wstring>(tab.id) +
+                              L" -> " + tab.url +
+                              L" -> " + logger->parse(hr));
+                return CComDispatchDriver(error).Invoke1((DISPID)0, &CComVariant(GENERIC_ERR_MSG));
+            }
+
+            CComVariant tabVariant(tabI);
+            hr = tabsArray.SetAt(index, tabVariant);
+            if (FAILED(hr)) {
+                logger->error(L"NativeMessaging::get_tabs "
+                        L"failed to store tab in array:"
+                        L" -> " + boost::lexical_cast<wstring>(tab.id) +
+                        L" -> " + tab.url +
+                        L" -> " + logger->parse(hr));
+                return CComDispatchDriver(error).Invoke1((DISPID)0, &CComVariant(GENERIC_ERR_MSG));
+            }
+            index++;
+        }
+    }catch (const CAtlException &e) {
+        logger->error(L"NativeMessaging::get_tabs "
+                      L"failed to populate tabsArray"
+                      L" -> " + logger->parse(e.m_hr));
+        return CComDispatchDriver(error).Invoke1((DISPID)0, &CComVariant(GENERIC_ERR_MSG));
+    }
+
+    SAFEARRAY *rawTabsArray = tabsArray.Detach();
+
+    logger->debug(L"NativeMessaging::get_tabs "
+                  L"returning " + boost::lexical_cast<wstring>(this->m_tabs.size()) + L" tab(s)");
+    return CComDispatchDriver(success).Invoke1((DISPID)0, &CComVariant(rawTabsArray));
+}
+
 
 /**
  * Method: NativeMessaging::load
@@ -201,6 +277,9 @@ STDMETHODIMP CNativeMessaging::unload(BSTR uuid, unsigned int instanceId)
     Callback::vector v = fg_callbacks[uuid];
     v.erase(std::remove_if(v.begin(), v.end(), delete_callback(instanceId)), v.end());
     fg_callbacks[uuid] = v;
+
+    // stop tracking the tab object
+    m_tabs.erase(instanceId);
 
     m_clients[uuid].erase(instanceId);
     if (m_clients[uuid].empty()) {
