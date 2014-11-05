@@ -22,6 +22,7 @@ forge['prefs'] = {
 						result = value; 
 	 				}
 				} catch (e) {
+					result = value;
 				}
 			}
 			success(result);
@@ -119,6 +120,7 @@ forge['prefs'] = {
 					result = value; 
  				}
 			} catch (e) {
+				result = value;
 			}
 		}
 		return result;
