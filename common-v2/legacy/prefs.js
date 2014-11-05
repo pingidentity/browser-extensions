@@ -10,15 +10,21 @@ forge['prefs'] = {
 		internal.priv.call("prefs.get", {
 			key: key.toString()
 		}, success && function (value) {
+			var result;
 			if (value === "undefined") {
-				value = undefined;
+				result = undefined;
 			} else {
 				try {
-					value = JSON.parse(value);
+					result = JSON.parse(value);
+					if (typeof result === "number") {
+						// Get around issue where numeric strings "1111" are being
+						// parsed into numbers; we are expecting a string result.
+						result = value; 
+	 				}
 				} catch (e) {
 				}
 			}
-			success(value);
+			success(result);
 		}, error);
 	},
 	/**
@@ -99,15 +105,23 @@ forge['prefs'] = {
 		var value = internal.priv.call("prefs.getSync", {
 			key: key.toString()
 		});
+
+		var result;
 		if (value === "undefined") {
-			value = undefined;
+			result = undefined;
 		} else {
 			try {
-				value = JSON.parse(value);
+				var 
+				result = JSON.parse(value);
+				if (typeof result === "number") {
+					// Get around issue where numeric strings "1111" are being
+					// parsed into numbers; we are expecting a string result.
+					result = value; 
+ 				}
 			} catch (e) {
 			}
 		}
-		return value;
+		return result;
 	},
 	/**
 	 * Set a preference.
@@ -121,6 +135,7 @@ forge['prefs'] = {
 		} else if (typeof value !== "string") {
 			value = JSON.stringify(value);
 		}
+	
 		return internal.priv.call("prefs.setSync", {
 			key: key.toString(),
 			value: value
