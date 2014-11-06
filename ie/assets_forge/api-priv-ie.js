@@ -248,15 +248,8 @@ var apiImpl = {
         get: function(params, success, error) {
             window.extensions.prefs_get(forge.config.uuid, params.key,
                                         function(value) {
-                                            try {
-                                                value = JSON.parse(value);
-                                            } catch (e) {
-                                                loggerpriv("prefs.get" +
-                                                           " -> " + value + " is not JSON parseable");
-                                                return success(null);
-                                            }
                                             success(value);
-                                        }, 
+                                        },
                                         error ? error : function(){});
         },
 
@@ -515,6 +508,19 @@ var apiImpl = {
                        " -> " + typeof success + 
                        " -> " + typeof error);
             error({ message: "cannot call closeCurrent() from background" });
+        },
+
+        getCurrent: function(params, success, error) {
+            loggerpriv("tabs.getCurrent" +
+            " -> " + params +
+            " -> " + typeof success +
+            " -> " + typeof error);
+            window.messaging.tabs_active(
+                forge.config.uuid,
+                function(tabInfo) {
+                    if (typeof success !== "function") return;
+                    success({ id: tabInfo.id, url: tabInfo.url });
+                });
         },
 
         onTabSelectionChanged: function(params, success, error) {
