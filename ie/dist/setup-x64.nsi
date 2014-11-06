@@ -212,7 +212,7 @@ Section "Uninstall"
     DeleteRegKey HKCU "Software\APP_NAME_HERE"
 
     ; Remove application preferences
-    DeleteRegKey HKCU "Software\AppDataLow\trigger.io\UUID_HERE"
+    DeleteRegKey HKCU "Software\AppDataLow\OpenForge\UUID_HERE"
 
     ; Being for the benefit of Mr AV Vendor there will be a twiddling of bits.
     Nop
