@@ -30,14 +30,20 @@ _ATL_FUNC_INFO CBrowserHelperObject::OnWindowStateChangedInfo = {
         VT_UI4
     }
 };
+_ATL_FUNC_INFO CBrowserHelperObject::OnDownloadCompleteInfo = {
+    CC_STDCALL, VT_EMPTY, 0, {}
+};
 
+static const wstring ACCESSIBLE_PROPERTY(L"accessible");
+static const wstring EXTENSIONS_PROPERTY(L"extensions");
+static const wstring MESSAGING_PROPERTY(L"messaging");
+static const wstring FORGE_SCRIPT_INJECTION_TAG(L"forgeScriptInjectionTag");
 
 /**
  * Construction
  */
 CBrowserHelperObject::CBrowserHelperObject()
     : m_isConnected(false),
-	  m_isAttached(false),
       m_nativeAccessible(),
       m_frameProxy(NULL)
 {
@@ -362,6 +368,52 @@ CBrowserHelperObject::MatchManifest(IWebBrowser2 *webBrowser2,
     return ret;
 }
 
+void __stdcall CBrowserHelperObject::OnDownloadComplete()
+{
+    HRESULT hr;
+
+    WebBrowser2Ptr webBrowser2(m_webBrowser2.p);
+    if (!webBrowser2) {
+        logger->debug(L"BrowserHelperObject::OnDownloadComplete2 "
+                      L"failed to obtain IWebBrowser2");
+        return;
+    }
+
+    CComBSTR bstr;
+    hr = webBrowser2->get_LocationURL(&bstr);
+
+    wstring location;
+    if (FAILED(hr)) {
+        location = L"";
+    }else{
+        location = bstr;
+    }
+
+    READYSTATE state;
+    hr = webBrowser2->get_ReadyState(&state);
+    if (FAILED(hr)) {
+        state = READYSTATE_UNINITIALIZED;
+    }
+
+    logger->debug(L"CBrowserHelperObject::OnDownloadComplete"
+                  L" -> " + location +
+                  L" -> " + boost::lexical_cast<wstring>(state));
+
+    // This is a heuristic to avoid invoking InitializeDocument for every DownloadComplete
+    if (!location.empty() && (state == READYSTATE_INTERACTIVE || state == READYSTATE_COMPLETE))
+    {
+        hr = this->InitializeDocument(webBrowser2,
+                location,
+                L"OnDownloadComplete");
+        if (FAILED(hr)) {
+            logger->debug(L"BrowserHelperObject::OnDownloadComplete couldn't completely initialize document"
+                    L" -> " + logger->parse(hr));
+            return;
+        }
+    }else{
+        logger->debug(L"BrowserHelperObject::OnDownloadComplete not initializing document");
+    }
+}
 
 /**
  * Event: OnNavigateComplete2
@@ -384,23 +436,14 @@ void __stdcall CBrowserHelperObject::OnNavigateComplete2(IDispatch *dispatch,
 		location = url->bstrVal;
 	}
 
-    // match location against manifest 
-    Manifest::pointer manifest = _AtlModule.moduleManifest;
-    std::pair<wstringvector, wstringvector> match = this->MatchManifest(webBrowser2, manifest, location);
-    if (match.first.size() == 0 && match.second.size() == 0) {
-        logger->debug(L"BrowserHelperObject::OnNavigateComplete2 not interested"
-                      L" -> " + manifest->uuid + 
-					  L" -> " + wstring(url->bstrVal) +
-                      L" -> " + location);
+    HRESULT hr = this->InitializeDocument(webBrowser2,
+            location,
+            L"OnNavigateComplete2");
+    if (FAILED(hr)) {
+        logger->debug(L"BrowserHelperObject::OnNavigateComplete2 couldn't completely initialize document"
+                L" -> " + logger->parse(hr));
         return;
     }
-
-    logger->debug(L"BrowserHelperObject::OnNavigateComplete2"
-                  L" -> " + manifest->uuid +
-                  L" -> " + location);
-
-	// attach forge extensions
-	this->OnAttachForgeExtensions(dispatch, location, L"OnNavigateComplete2");
 }
 
 
@@ -434,135 +477,169 @@ void __stdcall CBrowserHelperObject::OnDocumentComplete(IDispatch *dispatch,
 		return;
 	}
 
-    // match location against manifest 
-    std::pair<wstringvector, wstringvector> match = this->MatchManifest(webBrowser2, manifest, location);
-    if (match.first.size() == 0 && match.second.size() == 0) {
-        logger->debug(L"BrowserHelperObject::OnDocumentComplete not interested"
-                      L" -> " + manifest->uuid +
-					  L" -> " + wstring(url->bstrVal) +
-                      L" -> " + location);
-        return;
-    }
-
     logger->debug(L"BrowserHelperObject::OnDocumentComplete"
                   L" -> " + manifest->uuid +
 				  L" -> " + wstring(url->bstrVal) +
                   L" -> " + location);
 
+    HRESULT hr = this->InitializeDocument(webBrowser2,
+            location,
+            L"OnDocumentComplete");
+    if (FAILED(hr)) {
+        logger->debug(L"BrowserHelperObject::OnDocumentComplete couldn't completely initialize document"
+                L" -> " + logger->parse(hr));
+        return;
+    }
+}
+
+/**
+ * This method is idempotent to allow it to be used at various points during the loading of the
+ * document. This is required because the order and occurrence of DWebBrowserEvents is largely
+ * unpredictable.
+ */
+HRESULT CBrowserHelperObject::InitializeDocument(WebBrowser2Ptr webBrowser2,
+        const wstring& location,
+        const wstring& eventsource)
+{
+    HRESULT hr;
+
+	logger->debug(L"BrowserHelperObject::InitializeDocument"
+				  L" -> " + boost::lexical_cast<wstring>(webBrowser2.p) +
+				  L" -> " + location +
+				  L" -> " + eventsource);
+
+    Manifest::pointer manifest = _AtlModule.moduleManifest;
+
+    // match location against manifest 
+    std::pair<wstringvector, wstringvector> match = this->MatchManifest(webBrowser2, manifest, location);
+    if (match.first.size() == 0 && match.second.size() == 0) {
+        logger->debug(L"BrowserHelperObject::InitializeDocument not interested"
+                      L" -> " + manifest->uuid +
+                      L" -> " + location);
+        return S_OK;
+    }
+
+    // Make COM server attachments available to browser
+    hr = this->OnAttachForgeExtensions(webBrowser2, location, eventsource);
+    if (FAILED(hr)) {
+        logger->debug(L"Attach did not complete successfully, initialization cancelled"
+                L" -> " + logger->parse(hr));
+        return hr;
+    }
+
     // get IHTMLWindow2
     CComPtr<IDispatch> disp;
-    webBrowser2->get_Document(&disp);
+    hr = webBrowser2->get_Document(&disp);
     if (!disp) {
-        logger->debug(L"BrowserHelperObject::OnDocumentComplete get_Document failed");
-        return;
+        logger->debug(L"BrowserHelperObject::InitializeDocument get_Document failed");
+        return hr;
     }
     CComQIPtr<IHTMLDocument2, &IID_IHTMLDocument2> htmlDocument2(disp);
     if (!htmlDocument2) {
-        logger->debug(L"BrowserHelperObject::OnDocumentComplete IHTMLDocument2 failed");
-        return;
+        logger->debug(L"BrowserHelperObject::InitializeDocument IHTMLDocument2 failed");
+        return E_FAIL;
     }
     CComQIPtr<IHTMLWindow2, &IID_IHTMLWindow2> htmlWindow2;
-    htmlDocument2->get_parentWindow(&htmlWindow2);    
+    hr = htmlDocument2->get_parentWindow(&htmlWindow2);    
     if (!htmlWindow2) {
-        logger->debug(L"BrowserHelperObject::OnDocumentComplete IHTMLWindow2 failed");
-        return;
+        logger->debug(L"BrowserHelperObject::InitializeDocument IHTMLWindow2 failed");
+        return hr;
+    }
+    CComQIPtr<IDispatchEx> htmlWindow2Ex(htmlWindow2);
+    if (!htmlWindow2Ex) {
+        logger->debug(L"BrowserHelperObject::InitializeDocument IHTMLWindow2Ex failed");
+        return E_FAIL;
     }
 
-	// attach forge extensions when pages like target=_blank didn't trigger navComplete event
-	if (!m_isAttached) {
-		this->OnAttachForgeExtensions(dispatch, location, L"OnDocumentComplete");
-	}
+    if (!Attach::IsPropertyAttached(htmlWindow2Ex, FORGE_SCRIPT_INJECTION_TAG))
+    {
+        // Inject styles
+        wstringset dupes;
+        HTMLDocument document(webBrowser2); 
+        ScriptExtensions::scriptvector matches = m_scriptExtensions->read_styles(match.first);
+        ScriptExtensions::scriptvector::const_iterator i = matches.begin();
+        for (; i != matches.end(); i++) {
+            if (dupes.find(i->first) != dupes.end()) {
+                logger->debug(L"BrowserHelperObject::InitializeDocument already injected -> " + i->first);
+                continue;
+            }
+            wstringpointer style = i->second;
+            if (!style) {
+                logger->debug(L"BrowserHelperObject::InitializeDocument invalid stylesheet -> " + i->first);
+                continue;
+            }
+            HRESULT hr;
+            hr = document.InjectStyle(style);
+            if (FAILED(hr)) {
+                logger->error(L"BrowserHelperObject::InitializeDocument failed to inject style"
+                              L" -> " + i->first +
+                              L" -> " + logger->parse(hr));
+                continue;
+            }
+            dupes.insert(i->first);
+            logger->debug(L"BrowserHelperObject::InitializeDocument injected: " + i->first);
+        }    
 
-    // Inject styles
-    wstringset dupes;
-    HTMLDocument document(webBrowser2); 
-    ScriptExtensions::scriptvector matches = m_scriptExtensions->read_styles(match.first);
-    ScriptExtensions::scriptvector::const_iterator i = matches.begin();
-    for (; i != matches.end(); i++) {
-        if (dupes.find(i->first) != dupes.end()) {
-            logger->debug(L"BrowserHelperObject::OnDocumentComplete already injected -> " + i->first);
-            continue;
+        // Inject scripts
+        dupes.clear();
+        matches = m_scriptExtensions->read_scripts(match.second);
+        i = matches.begin();
+        for (; i != matches.end(); i++) {
+            if (dupes.find(i->first) != dupes.end()) {
+                logger->debug(L"BrowserHelperObject::InitializeDocument already injected -> " + i->first);
+                continue;
+            }
+            wstringpointer script = i->second;
+            if (!script) {
+                logger->debug(L"BrowserHelperObject::InitializeDocument invalid script -> " + i->first);
+                continue;
+            }
+            HRESULT hr;
+            //hr = document.InjectScript(script);
+            //hr = document.InjectScriptTag(HTMLDocument::attrScriptType, i->first);
+            CComVariant ret;
+            hr = htmlWindow2->execScript(CComBSTR(script->c_str()), L"javascript", &ret);
+            if (FAILED(hr)) {
+                logger->error(L"BrowserHelperObject::InitializeDocument failed to inject script"
+                              L" -> " + i->first +
+                              L" -> " + logger->parse(hr));
+                continue;
+            }
+            dupes.insert(i->first);
+            logger->debug(L"BrowserHelperObject::InitializeDocument injected"
+                          L" -> " + location +
+                          L" -> " + i->first);
         }
-        wstringpointer style = i->second;
-        if (!style) {
-            logger->debug(L"BrowserHelperObject::OnDocumentComplete invalid stylesheet -> " + i->first);
-            continue;
-        }
-        HRESULT hr;
-        hr = document.InjectStyle(style);
+
+        hr = Attach::ForgeScriptInjectionTag(manifest->uuid,
+                htmlWindow2Ex,
+                FORGE_SCRIPT_INJECTION_TAG);
         if (FAILED(hr)) {
-            logger->error(L"BrowserHelperObject::OnDocumentComplete failed to inject style"
-                          L" -> " + i->first +
+            logger->error(L"BrowserHelperObject::InitializeDocument failed to attach script injection tag"
                           L" -> " + logger->parse(hr));
-            continue;
+            return hr;
         }
-        dupes.insert(i->first);
-        logger->debug(L"BrowserHelperObject::OnDocumentComplete injected: " + i->first);
-    }    
-
-    // Inject scripts
-    dupes.clear();
-    matches = m_scriptExtensions->read_scripts(match.second);
-    i = matches.begin();
-    for (; i != matches.end(); i++) {
-        if (dupes.find(i->first) != dupes.end()) {
-            logger->debug(L"BrowserHelperObject::OnDocumentComplete already injected -> " + i->first);
-            continue;
-        }
-        wstringpointer script = i->second;
-        if (!script) {
-            logger->debug(L"BrowserHelperObject::OnDocumentComplete invalid script -> " + i->first);
-            continue;
-        }
-        HRESULT hr;
-        //hr = document.InjectScript(script);
-        //hr = document.InjectScriptTag(HTMLDocument::attrScriptType, i->first);
-        CComVariant ret;
-        hr = htmlWindow2->execScript(CComBSTR(script->c_str()), L"javascript", &ret);
-        if (FAILED(hr)) {
-            logger->error(L"BrowserHelperObject::OnDocumentComplete failed to inject script"
-                          L" -> " + i->first +
-                          L" -> " + logger->parse(hr));
-            continue;
-        }
-        dupes.insert(i->first);
-        logger->debug(L"BrowserHelperObject::OnDocumentComplete injected"
-                      L" -> " + location +
-                      L" -> " + i->first);
+    }else{
+        logger->debug(L"BrowserHelperObject::InitializeDocument forge scripts already injected into document"
+                      L" -> " + logger->parse(hr));
     }
-
-    /*
-    // Test in-process IAccessible access
-    SHANDLE_PTR phwnd;
-    HRESULT hr = webBrowser2->get_HWND(&phwnd);
-    HWND hwnd = reinterpret_cast<HWND>(phwnd);
-    AccessibleBrowser ab(hwnd);
-    wstringvector tabs = ab.tabs();
-    for (wstringvector::const_iterator tab = tabs.begin(); tab != tabs.end(); tab++) {
-        logger->debug(L"BrowserHelperObject::OnDocumentComplete tab -> " + *tab);
-    }
-    */
+     
+    return S_OK;
 }
 
-
 /**
- * Event: OnAttachForgeExtensions
+ * This method is idempotent to allow it to be used at various points during the loading of the
+ * document. This is required because the order and occurrence of DWebBrowserEvents is largely
+ * unpredictable.
  */
-void __stdcall CBrowserHelperObject::OnAttachForgeExtensions(IDispatch *dispatch, 
-															 const wstring& location,
-															 const wstring& eventsource)
+HRESULT CBrowserHelperObject::OnAttachForgeExtensions(WebBrowser2Ptr webBrowser2,
+        const wstring& location,
+        const wstring& eventsource)
 {
-	m_isAttached = false;
-
-	CComQIPtr<IWebBrowser2, &IID_IWebBrowser2> webBrowser2(dispatch);
-    if (!webBrowser2) {
-        logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
-                      L"failed to obtain IWebBrowser2");
-        return;
-    } 
+    HRESULT hr;
 
 	logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions"
-				  L" -> " + boost::lexical_cast<wstring>(dispatch) +
+				  L" -> " + boost::lexical_cast<wstring>(webBrowser2.p) +
 				  L" -> " + location +
 				  L" -> " + eventsource);
 
@@ -570,85 +647,98 @@ void __stdcall CBrowserHelperObject::OnAttachForgeExtensions(IDispatch *dispatch
 
     // get interfaces
     CComPtr<IDispatch> disp;
-    webBrowser2->get_Document(&disp);
+    hr = webBrowser2->get_Document(&disp);
     if (!disp) {
         logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions get_Document failed");
-        return;
+        return hr;
     }
 	logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
 				  L" IDispatch -> " + boost::lexical_cast<wstring>(disp)); 
     CComQIPtr<IHTMLDocument2, &IID_IHTMLDocument2> htmlDocument2(disp);
     if (!htmlDocument2) {
         logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions IHTMLDocument2 failed");
-        return;
+        return E_FAIL;
     }
 	logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
 				  L" IHTMLDocument2 -> " + boost::lexical_cast<wstring>(htmlDocument2)); 
     CComQIPtr<IHTMLWindow2, &IID_IHTMLWindow2> htmlWindow2;
-    htmlDocument2->get_parentWindow(&htmlWindow2);    
+    hr = htmlDocument2->get_parentWindow(&htmlWindow2);    
     if (!htmlWindow2) {
         logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions IHTMLWindow2 failed");
-        return;
+        return hr;
     }
 	logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
 				  L" IHTMLWindow2 -> " + boost::lexical_cast<wstring>(htmlWindow2)); 
     CComQIPtr<IDispatchEx> htmlWindow2Ex(htmlWindow2);
     if (!htmlWindow2Ex) {
         logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions IHTMLWindow2Ex failed");
-        return;
+        return E_FAIL;
     }
 
-    HRESULT hr;
-
-    // Attach NativeAccessible (forge.tabs.*)
-    if (m_nativeAccessible) {
-        logger->error(L"BrowserHelperObject::OnAttachForgeExtensions resetting nativeAccessible");
-        m_nativeAccessible.reset();
-    }
-    m_nativeAccessible = NativeAccessible::pointer(new NativeAccessible(webBrowser2));
-    hr = Attach::NativeTabs(htmlWindow2Ex, 
-                            L"accessible",
-                            m_nativeAccessible.get());
-    if (FAILED(hr)) {
-        logger->error(L"BrowserHelperObject::OnAttachForgeExtensions "
-                      L"failed to attach NativeExtensions"
-                      L" -> " + logger->parse(hr));
-        return;
-    }    
-
-    // Attach NativeExtensions
-    hr = Attach::NativeExtensions(manifest->uuid,
-                                  htmlWindow2Ex, 
-                                  L"extensions", 
-                                  m_instanceId,
-                                  location,
-                                  &m_nativeExtensions.p); // "T** operator&() throw()" asserts on p==NULL
-    if (FAILED(hr)) {
-        logger->error(L"BrowserHelperObject::OnAttachForgeExtensions "
-                      L"failed to attach NativeExtensions"
-                      L" -> " + logger->parse(hr));
-        return;
-    }
-	logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
-				  L"attached NativeExtensions");
-
-    // Attach NativeMessaging
-    hr = Attach::NativeMessaging(manifest->uuid,
-                                 htmlWindow2Ex, 
-                                 L"messaging", 
-                                 m_instanceId,
-                                 &m_nativeMessaging.p); // "T** operator&() throw()" asserts on p==NULL
-    if (FAILED(hr)) {
-        logger->error(L"BrowserHelperObject::OnAttachForgeExtensions "
-                      L"failed to attach NativeMessaging"
-                      L" -> " + logger->parse(hr));
-        return;
+    if (!Attach::IsPropertyAttached(htmlWindow2Ex, ACCESSIBLE_PROPERTY)) {
+        // Attach NativeAccessible (forge.tabs.*)
+        if (m_nativeAccessible) {
+            logger->error(L"BrowserHelperObject::OnAttachForgeExtensions resetting nativeAccessible");
+            m_nativeAccessible.reset();
+        }
+        m_nativeAccessible = NativeAccessible::pointer(new NativeAccessible(webBrowser2));
+        hr = Attach::NativeTabs(htmlWindow2Ex, 
+                                ACCESSIBLE_PROPERTY,
+                                m_nativeAccessible.get());
+        if (FAILED(hr)) {
+            logger->error(L"BrowserHelperObject::OnAttachForgeExtensions "
+                          L"failed to attach NativeAccessible"
+                          L" -> " + logger->parse(hr));
+            return hr;
+        }
+    }else{
+        logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
+                      L"NativeAccessible already attached");
     }
 
-	logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
-				  L"attached NativeMessaging");
+    if (!Attach::IsPropertyAttached(htmlWindow2Ex, EXTENSIONS_PROPERTY)) {
+        // Attach NativeExtensions
+        hr = Attach::NativeExtensions(manifest->uuid,
+                                      htmlWindow2Ex, 
+                                      EXTENSIONS_PROPERTY, 
+                                      m_instanceId,
+                                      location,
+                                      &m_nativeExtensions.p); // "T** operator&() throw()" asserts on p==NULL
+        if (FAILED(hr)) {
+            logger->error(L"BrowserHelperObject::OnAttachForgeExtensions "
+                          L"failed to attach NativeExtensions"
+                          L" -> " + logger->parse(hr));
+            return hr;
+        }
+        logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
+                      L"attached NativeExtensions");
+    }else{
+        logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
+                      L"NativeExtensions already attached");
+    }
 
-	m_isAttached = true;
+    if (!Attach::IsPropertyAttached(htmlWindow2Ex, MESSAGING_PROPERTY)) {
+        // Attach NativeMessaging
+        hr = Attach::NativeMessaging(manifest->uuid,
+                                     htmlWindow2Ex, 
+                                     MESSAGING_PROPERTY, 
+                                     m_instanceId,
+                                     &m_nativeMessaging.p); // "T** operator&() throw()" asserts on p==NULL
+        if (FAILED(hr)) {
+            logger->error(L"BrowserHelperObject::OnAttachForgeExtensions "
+                          L"failed to attach NativeMessaging"
+                          L" -> " + logger->parse(hr));
+            return hr;
+        }
+
+        logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
+                      L"attached NativeMessaging");
+    }else{
+        logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
+                      L"NativeMessaging already attached");
+    }
+
+    return S_OK;
 }
 
 

@@ -16,6 +16,7 @@ using namespace ATL;
 // aliases
 class CBrowserHelperObject;
 typedef IDispEventSimpleImpl<0, CBrowserHelperObject, &DIID_DWebBrowserEvents2> WebBrowserEvents2;
+typedef CComQIPtr<IWebBrowser2, &IID_IWebBrowser2> WebBrowser2Ptr;
 
 
 /**
@@ -44,11 +45,13 @@ BEGIN_SINK_MAP(CBrowserHelperObject)
     SINK_ENTRY_INFO(0, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2,  OnNavigateComplete2, &OnNavigateComplete2Info)
     SINK_ENTRY_INFO(0, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE,   OnDocumentComplete, &OnDocumentCompleteInfo)
     SINK_ENTRY_INFO(0, DIID_DWebBrowserEvents2, DISPID_WINDOWSTATECHANGED, OnWindowStateChanged, &OnWindowStateChangedInfo)
+    SINK_ENTRY_INFO(0, DIID_DWebBrowserEvents2, DISPID_DOWNLOADCOMPLETE, OnDownloadComplete, &OnDownloadCompleteInfo)
 END_SINK_MAP()
 
     static _ATL_FUNC_INFO OnNavigateComplete2Info;
     static _ATL_FUNC_INFO OnDocumentCompleteInfo;
     static _ATL_FUNC_INFO OnWindowStateChangedInfo;
+    static _ATL_FUNC_INFO OnDownloadCompleteInfo;
 
  public:
     // IObjectWithSite
@@ -63,16 +66,18 @@ END_SINK_MAP()
                                        VARIANT *url);
     void __stdcall OnDocumentComplete(IDispatch *idispatch, 
                                       VARIANT *url);
+    void __stdcall OnDownloadComplete();
     void __stdcall OnWindowStateChanged(DWORD flags, DWORD mask);
-
-	void __stdcall OnAttachForgeExtensions(IDispatch *idispatch, 
-										   const wstring& location,
-										   const wstring& eventsource);
 
  private:
     HRESULT OnConnect(IUnknown *iunknown);
     HRESULT OnDisconnect(IUnknown *iunknown);
-    HRESULT OnFirstRunAfterInstall();
+    HRESULT InitializeDocument(WebBrowser2Ptr webBrowser2,
+            const wstring& location,
+            const wstring& eventsource);
+    HRESULT OnAttachForgeExtensions(WebBrowser2Ptr webBrowser2,
+            const wstring& location,
+            const wstring& eventsource);
     
     // Keep COM servers around for duration of BHO life
     NativeAccessible::pointer  m_nativeAccessible;
@@ -85,7 +90,6 @@ END_SINK_MAP()
     ScriptExtensions::pointer m_scriptExtensions;
     unsigned int m_instanceId;
     bool m_isConnected;
-	bool m_isAttached;
     
     // used to filter secondary requests
     CComPtr<IWebBrowser2> m_webBrowser2;

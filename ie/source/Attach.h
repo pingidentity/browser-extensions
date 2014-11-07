@@ -37,6 +37,11 @@ namespace Attach {
                            const wstring& name, 
                            unsigned int instanceId,
                            INativeControls **out);
+    HRESULT ForgeScriptInjectionTag(const wstring& uuid,
+            IDispatchEx *htmlWindow2Ex,
+            const wstring& name);
+    bool IsPropertyAttached(IDispatchEx *htmlWindow2Ex,
+                            const wstring& name);
 };
 
 #endif /* __ATTACH_H__ */

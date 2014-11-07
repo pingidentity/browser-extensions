@@ -306,3 +306,51 @@ HRESULT Attach::NativeControls(const wstring& uuid,
 
     return S_OK;
 }
+
+HRESULT Attach::ForgeScriptInjectionTag(const wstring& uuid,
+        IDispatchEx *htmlWindow2Ex,
+        const wstring& name)
+{
+    DISPID dispid;
+    HRESULT hr = htmlWindow2Ex->GetDispID(CComBSTR(name.c_str()), fdexNameEnsure, &dispid);
+    if (FAILED(hr) || !htmlWindow2Ex) {
+        logger->error(L"Attach::ForgeScriptInjectionTag failed"
+                      L" -> " + logger->parse(hr));
+        return hr;
+    }
+
+    CComBSTR uuidBstr(uuid.c_str());
+    DISPID namedArgs[] = { DISPID_PROPERTYPUT };
+    DISPPARAMS params;
+    params.rgvarg = new VARIANT[1];
+    params.rgvarg[0].bstrVal = uuidBstr.m_str;
+    params.rgvarg[0].vt = VT_BSTR;
+    params.rgdispidNamedArgs = namedArgs;
+    params.cArgs = 1;
+    params.cNamedArgs = 1;
+    hr = htmlWindow2Ex->InvokeEx(dispid,
+            LOCALE_USER_DEFAULT,
+            DISPATCH_PROPERTYPUT,
+            &params,
+            NULL, NULL, NULL);
+    if (FAILED(hr)) {
+        logger->error(L"Attach::ForgeScriptInjectionTag failed to attach"
+                      L" -> " + logger->parse(hr));
+        return hr;
+    }
+
+    return S_OK;
+}
+
+bool Attach::IsPropertyAttached(IDispatchEx *htmlWindow2Ex, const wstring& name)
+{
+    DISPID dispid;
+    HRESULT hr = htmlWindow2Ex->GetDispID(CComBSTR(name.c_str()), fdexNameCaseInsensitive, &dispid);
+    if (FAILED(hr)) {
+        logger->debug(name + L" property is not attached to the browser window");
+        return false;
+    }
+
+    logger->debug(name + L" property is attached to the browser window");
+    return true;
+}
