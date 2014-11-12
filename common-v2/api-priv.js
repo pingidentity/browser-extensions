@@ -50,7 +50,7 @@ internal.priv.call = function (methodName, params, success, error) {
 				try {
 					strargs = JSON.stringify(arguments);
 				} catch (e) { }
-				forge.logging.debug('Call to '+methodName+'('+strparams+') success: '+strargs);
+				forge.logging.debug('Call to '+methodName+'('+strparams+') success');//: '+strargs);
 			}
 			success.apply(this, arguments);
 		}, function () {
@@ -62,7 +62,7 @@ internal.priv.call = function (methodName, params, success, error) {
 				// Don't recurse the logger
 				alert('Call to '+methodName+'('+strparams+') failed: '+strargs);
 			} else {
-				forge.logging.warning('Call to '+methodName+'('+strparams+') failed: '+strargs);
+				forge.logging.warning('Call to '+methodName+'('+strparams+') failed'); //: '+strargs);
 			}
 			error.apply(this, arguments);
 		});
