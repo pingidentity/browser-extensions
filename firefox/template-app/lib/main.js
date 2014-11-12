@@ -385,6 +385,8 @@ def get_ba_icon(ba):
 			// Create and destroy popups on demand (like Chrome)
 			var panel = require("panel").Panel({
 				contentURL: options.url,
+				{% if "default_width" in plugins["button"]["config"] %} width: parseInt(${json.dumps(plugins['button']["config"]['default_width'])}), {% end %}
+				{% if "default_height" in plugins["button"]["config"] %} height: parseInt(${json.dumps(plugins['button']["config"]['default_height'])}), {% end %}
 				contentScriptFile: data.url("forge/api-firefox-proxy.js"),
 				contentScriptWhen: "start",
 				onMessage: handleNonPrivCall,
