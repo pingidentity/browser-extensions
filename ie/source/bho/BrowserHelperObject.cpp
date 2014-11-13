@@ -436,11 +436,10 @@ void __stdcall CBrowserHelperObject::OnNavigateComplete2(IDispatch *dispatch,
 		location = url->bstrVal;
 	}
 
-    HRESULT hr = this->InitializeDocument(webBrowser2,
-            location,
-            L"OnNavigateComplete2");
+    // Make COM server attachments available to browser
+    HRESULT hr = this->OnAttachForgeExtensions(webBrowser2, location, L"OnNavigateComplete2");
     if (FAILED(hr)) {
-        logger->debug(L"BrowserHelperObject::OnNavigateComplete2 couldn't completely initialize document"
+        logger->debug(L"BrowserHelperObject::OnNavigateComplete2 attach did not complete successfully, initialization cancelled"
                 L" -> " + logger->parse(hr));
         return;
     }
@@ -551,8 +550,29 @@ HRESULT CBrowserHelperObject::InitializeDocument(WebBrowser2Ptr webBrowser2,
         return E_FAIL;
     }
 
+    CComPtr<IHTMLElement> documentActiveElement;
+    hr = htmlDocument2->get_activeElement(&documentActiveElement);
+    if (FAILED(hr) || !documentActiveElement) {
+        logger->debug(L"BrowserHelperObject::InitializeDocument activeElement is not available, not injecting scripts"
+                      L" -> " + logger->parse(hr));
+        return E_FAIL;
+    }
+
+    CComBSTR activeElementTag;
+    hr = documentActiveElement->get_tagName(&activeElementTag);
+    if (FAILED(hr)) {
+        logger->debug(L"BrowserHelperObject::InitializeDocument failed to determine active element tag"
+                      L" -> " + logger->parse(hr));
+    }else{
+        logger->debug(L"BrowserHelperObject::InitializeDocument active element tag = " +
+                wstring(activeElementTag));
+    }
+
+
     if (!Attach::IsPropertyAttached(htmlWindow2Ex, FORGE_SCRIPT_INJECTION_TAG))
     {
+        bool injectionFailed = false;
+
         // Inject styles
         wstringset dupes;
         HTMLDocument document(webBrowser2); 
@@ -574,6 +594,7 @@ HRESULT CBrowserHelperObject::InitializeDocument(WebBrowser2Ptr webBrowser2,
                 logger->error(L"BrowserHelperObject::InitializeDocument failed to inject style"
                               L" -> " + i->first +
                               L" -> " + logger->parse(hr));
+                injectionFailed = true;
                 continue;
             }
             dupes.insert(i->first);
@@ -603,6 +624,7 @@ HRESULT CBrowserHelperObject::InitializeDocument(WebBrowser2Ptr webBrowser2,
                 logger->error(L"BrowserHelperObject::InitializeDocument failed to inject script"
                               L" -> " + i->first +
                               L" -> " + logger->parse(hr));
+                injectionFailed = true;
                 continue;
             }
             dupes.insert(i->first);
@@ -611,17 +633,22 @@ HRESULT CBrowserHelperObject::InitializeDocument(WebBrowser2Ptr webBrowser2,
                           L" -> " + i->first);
         }
 
-        hr = Attach::ForgeScriptInjectionTag(manifest->uuid,
-                htmlWindow2Ex,
-                FORGE_SCRIPT_INJECTION_TAG);
-        if (FAILED(hr)) {
-            logger->error(L"BrowserHelperObject::InitializeDocument failed to attach script injection tag"
-                          L" -> " + logger->parse(hr));
-            return hr;
+        if (!injectionFailed) {
+            hr = Attach::ForgeScriptInjectionTag(manifest->uuid,
+                    htmlWindow2Ex,
+                    FORGE_SCRIPT_INJECTION_TAG);
+            if (FAILED(hr)) {
+                logger->error(L"BrowserHelperObject::InitializeDocument failed to attach script injection tag"
+                              L" -> " + logger->parse(hr));
+                return hr;
+            }
+        }else{
+            logger->error(L"BrowserHelperObject::InitializeDocument failed to inject script and/or styles,"
+                          L" not recording completion of injection in DOM");
+            return E_FAIL;
         }
     }else{
-        logger->debug(L"BrowserHelperObject::InitializeDocument forge scripts already injected into document"
-                      L" -> " + logger->parse(hr));
+        logger->debug(L"BrowserHelperObject::InitializeDocument forge scripts already injected into document");
     }
      
     return S_OK;
@@ -696,47 +723,37 @@ HRESULT CBrowserHelperObject::OnAttachForgeExtensions(WebBrowser2Ptr webBrowser2
                       L"NativeAccessible already attached");
     }
 
-    if (!Attach::IsPropertyAttached(htmlWindow2Ex, EXTENSIONS_PROPERTY)) {
-        // Attach NativeExtensions
-        hr = Attach::NativeExtensions(manifest->uuid,
-                                      htmlWindow2Ex, 
-                                      EXTENSIONS_PROPERTY, 
-                                      m_instanceId,
-                                      location,
-                                      &m_nativeExtensions.p); // "T** operator&() throw()" asserts on p==NULL
-        if (FAILED(hr)) {
-            logger->error(L"BrowserHelperObject::OnAttachForgeExtensions "
-                          L"failed to attach NativeExtensions"
-                          L" -> " + logger->parse(hr));
-            return hr;
-        }
-        logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
-                      L"attached NativeExtensions");
-    }else{
-        logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
-                      L"NativeExtensions already attached");
+    // Attach NativeExtensions
+    hr = Attach::NativeExtensions(manifest->uuid,
+            htmlWindow2Ex, 
+            EXTENSIONS_PROPERTY, 
+            m_instanceId,
+            location,
+            &m_nativeExtensions.p); // "T** operator&() throw()" asserts on p==NULL
+    if (FAILED(hr)) {
+        logger->error(L"BrowserHelperObject::OnAttachForgeExtensions "
+                L"failed to attach NativeExtensions"
+                L" -> " + logger->parse(hr));
+        return hr;
+    }
+    logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
+            L"attached NativeExtensions");
+
+    // Attach NativeMessaging
+    hr = Attach::NativeMessaging(manifest->uuid,
+            htmlWindow2Ex, 
+            MESSAGING_PROPERTY, 
+            m_instanceId,
+            &m_nativeMessaging.p); // "T** operator&() throw()" asserts on p==NULL
+    if (FAILED(hr)) {
+        logger->error(L"BrowserHelperObject::OnAttachForgeExtensions "
+                L"failed to attach NativeMessaging"
+                L" -> " + logger->parse(hr));
+        return hr;
     }
 
-    if (!Attach::IsPropertyAttached(htmlWindow2Ex, MESSAGING_PROPERTY)) {
-        // Attach NativeMessaging
-        hr = Attach::NativeMessaging(manifest->uuid,
-                                     htmlWindow2Ex, 
-                                     MESSAGING_PROPERTY, 
-                                     m_instanceId,
-                                     &m_nativeMessaging.p); // "T** operator&() throw()" asserts on p==NULL
-        if (FAILED(hr)) {
-            logger->error(L"BrowserHelperObject::OnAttachForgeExtensions "
-                          L"failed to attach NativeMessaging"
-                          L" -> " + logger->parse(hr));
-            return hr;
-        }
-
-        logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
-                      L"attached NativeMessaging");
-    }else{
-        logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
-                      L"NativeMessaging already attached");
-    }
+    logger->debug(L"BrowserHelperObject::OnAttachForgeExtensions "
+            L"attached NativeMessaging");
 
     return S_OK;
 }
