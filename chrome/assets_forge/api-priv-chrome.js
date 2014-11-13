@@ -282,14 +282,16 @@ var apiImpl = {
 			});
 		},
 		getAllTabs: function(params, success, error) {
-			chrome.tabs.getAllInWindow(null, function(tabs){
-				var result = [];
-				for (var i = 0; i < tabs.length; i++) {
-					var tab = tabs[i];
-					result[result.length] = {id: tab.id, url: tab.url};
-				}			
-				success(result);
-			});
+			chrome.tabs.query({ currentWindow: true }, 
+				function (tabs) {
+					var result = [];
+					for (var i = 0; i < tabs.length; i++) {
+						var tab = tabs[i];
+						result[result.length] = {id: tab.id, url: tab.url};
+					}			
+					success(result);
+				}
+			);
 		}
 	},
 	button: {
