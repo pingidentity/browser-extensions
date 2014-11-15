@@ -327,8 +327,16 @@ STDMETHODIMP CNativeExtensions::prefs_clear(BSTR uuid, BSTR name,
  */
 STDMETHODIMP CNativeExtensions::getURL(BSTR url, BSTR *out_url)
 {
+    // Need to treat NULL BSTR the same as ""
+    wstring wideUrl;
+    if (url == NULL) {
+        wideUrl = L"";
+    }else{
+        wideUrl = wstring(url);
+    }
+
     bfs::wpath path = 
-        _AtlModule.modulePath / bfs::wpath(L"src") / bfs::wpath(url);
+        _AtlModule.modulePath / bfs::wpath(L"src") / bfs::wpath(wideUrl);
 
     wstring ret = L"file:///" + wstring_replace(path.wstring(), '\\', '/');
     *out_url = ::SysAllocString(ret.c_str()); // TODO leak
