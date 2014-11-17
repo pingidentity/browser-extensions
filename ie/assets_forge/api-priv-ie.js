@@ -398,81 +398,19 @@ var apiImpl = {
          * not from the options.success and options.error values.
          */
         ajax: function(params_, success, error) {
-            /*loggerpriv("request.ajax " +
-                       " -> " + JSON.stringify(params_) +
-                       " -> " + typeof success +
-                       " -> " + typeof error);*/
-
-            // create dummy callbacks if required
-            params_.success = typeof params_.success === 'function' ? params_.success : function(){};
-            params_.error   = typeof params_.error   === 'function' ? params_.error   : function(){};
-            
             // Copy params to prevent overwriting of original success/error
             var params = $.extend({}, params_);
             params.success = success;
-            params.error = function(xhr, status, err) {
-                json = safe_jstringify(params);
-                error({ message: 'api.ajax with ' + json + ' failed. ' + status + ': ' + err,
-                        status: status, err: err });
+            params.error = function (xhr, status, err) {
+                error({
+                    message: 'api.ajax with '+JSON.stringify(params)+'failed. '+status+': '+err,
+                    type: 'EXPECTED_FAILURE',
+                    status: status,
+                    statusCode: xhr.status,
+                    err: err
+                });
             }
-            
-            // check arguments
-            params.type = params.type ? params.type : "GET";
-            params.data = params.data ? params.data : "";
-            params.timeout = params.timeout ? params.timeout : 60000;
-            params.headers = params.headers ? params.headers : {};
-            params.accepts = params.accepts ? params.accepts : ["*/*"];
-            params.accepts = typeof params.accepts === "string" ? [params.accepts] : params.accepts;
-
-            // encode data 
-            if (params.type === "GET") {
-                params.url = internal.generateURI(params.url, params.data);
-                params.data = "";
-            } else if (params.data) {
-                params.data = internal.generateQueryString(params.data);
-                params.contentType = params.contentType ? params.contentType : "application/x-www-form-urlencoded";
-            }
-
-            try {
-                // TODO headers
-                params.contentType = params.contentType ? params.contentType : "text/html"; 
-                window.extensions.xhr(params.type,
-                                      params.url, 
-                                      params.data,
-                                      params.contentType,
-                                      JSON.stringify(params.headers),
-                                      function(data) {
-                                          if (params.dataType === "json") {
-                                              try { 
-                                                  var json = JSON.parse(data); 
-                                                  data = json;
-                                              }  catch (e) { 
-                                                  loggerpriv("request.ajax" +
-                                                             " json error -> " + data); 
-                                              }
-                                          }
-                                          success(data);
-                                      },
-                                      function(data) {
-                                          if (typeof error !== "function") return;
-                                          try {
-                                              var json = JSON.parse(data);
-                                              data = json;
-                                          } catch (e) {
-                                              loggerpriv("request.ajax" +
-                                                         " json error -> " + data); 
-                                              data = e;
-                                          }
-                                          error(data);
-                                     });
-            } catch (e) {
-                var json = "exception could not be stringified";
-                try {
-                    json = safe_jstringify(e);
-                } catch (e) {}
-                loggerpriv("request.ajax exception -> " + json);
-                error({ message: json });
-            }
+            $.ajax(params);
         }
     },
 
