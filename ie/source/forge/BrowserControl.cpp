@@ -269,8 +269,8 @@ void __stdcall BrowserControl::OnDocumentComplete(IDispatch *idispatch,
     long width, height;
     htmlElement2->get_scrollWidth(&width);
     htmlElement2->get_scrollHeight(&height);
-    width  = MIN(800, width);       // approx chrome's maximum size
-    height = MIN(500, height);      // 
+    width  = 355;       // approx chrome's maximum size
+    height = 140;      //
 
     // Get page color
     CComVariant v;
