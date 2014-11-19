@@ -33,6 +33,11 @@ _ATL_FUNC_INFO CBrowserHelperObject::OnWindowStateChangedInfo = {
 _ATL_FUNC_INFO CBrowserHelperObject::OnDownloadCompleteInfo = {
     CC_STDCALL, VT_EMPTY, 0, {}
 };
+_ATL_FUNC_INFO CBrowserHelperObject::OnFocusInInfo = {
+    CC_STDCALL, VT_EMPTY, 1, {
+        VT_DISPATCH,
+    }
+};
 
 static const wstring ACCESSIBLE_PROPERTY(L"accessible");
 static const wstring EXTENSIONS_PROPERTY(L"extensions");
@@ -124,7 +129,7 @@ HRESULT CBrowserHelperObject::OnConnect(IUnknown *unknown)
                       L" -> " + logger->parse(hr));
         return hr;
     }
-    hr = this->DispEventAdvise(m_webBrowser2);
+    hr = WebBrowserEvents2::DispEventAdvise(m_webBrowser2);
     if (FAILED(hr)) {
         logger->error(L"BrowserHelperObject::OnConnect "
                       L"failed to sink DWebBrowserEvents2"
@@ -219,6 +224,23 @@ HRESULT CBrowserHelperObject::OnConnect(IUnknown *unknown)
     return S_OK;
 }
 
+HRESULT CBrowserHelperObject::DetachFromDocEvents()
+{
+    HRESULT hr;
+
+    if (this->m_currentDocument) {
+        hr = HtmlDocEvents2::DispEventUnadvise(this->m_currentDocument);
+        if (hr == CONNECT_E_NOCONNECTION || SUCCEEDED(hr) ) {
+            logger->debug(L"BrowserHelperObject::DetachFromDocEvents unsunk events");
+        }else{
+            logger->error(L"BrowserHelperObject::DetachFromDocEvents failed to unsink events");
+            return hr;
+        }
+        this->m_currentDocument = NULL;
+    }
+
+    return S_OK;
+}
 
 /**
  * Event: OnDisconnect
@@ -261,7 +283,7 @@ HRESULT CBrowserHelperObject::OnDisconnect(IUnknown *unknown)
     // BrowserHelperObject    
     logger->debug(L"BrowserHelperObject::OnDisconnect() release BHO");    
     if (m_webBrowser2 && m_isConnected) {
-        hr = this->DispEventUnadvise(m_webBrowser2); 
+        hr = WebBrowserEvents2::DispEventUnadvise(m_webBrowser2); 
         if (hr == CONNECT_E_NOCONNECTION) { 
             // IE7 disconnects our connection points _before_ calling us with SetSite(NULL)
             logger->warn(L"BrowserHelperObject::OnDisconnect DispEventUnadvise bug");
@@ -274,6 +296,7 @@ HRESULT CBrowserHelperObject::OnDisconnect(IUnknown *unknown)
         }
         m_isConnected = false;
     }
+    this->DetachFromDocEvents();
 
     logger->debug(L"BrowserHelperObject::OnDisconnect() done");    
 
@@ -568,7 +591,6 @@ HRESULT CBrowserHelperObject::InitializeDocument(WebBrowser2Ptr webBrowser2,
                 wstring(activeElementTag));
     }
 
-
     if (!Attach::IsPropertyAttached(htmlWindow2Ex, FORGE_SCRIPT_INJECTION_TAG))
     {
         bool injectionFailed = false;
@@ -647,10 +669,26 @@ HRESULT CBrowserHelperObject::InitializeDocument(WebBrowser2Ptr webBrowser2,
                           L" not recording completion of injection in DOM");
             return E_FAIL;
         }
+
+        // Register for events in the document to catch focus events, detach from the current doc first
+        hr = this->DetachFromDocEvents();
+        if (FAILED(hr)) {
+            logger->debug(L"BrowserHelperObject::InitializeDocument failed to detach from doc events"
+                    L" -> " + logger->parse(hr));
+            return hr;
+        }
+        this->m_currentDocument = htmlDocument2;
+        
+        hr = HtmlDocEvents2::DispEventAdvise(this->m_currentDocument);
+        if (FAILED(hr)) {
+            logger->debug(L"BrowserHelperObject::InitializeDocument failed to attach to document events"
+                          L" -> " + logger->parse(hr));
+            return hr;
+        }
     }else{
         logger->debug(L"BrowserHelperObject::InitializeDocument forge scripts already injected into document");
     }
-     
+
     return S_OK;
 }
 
@@ -758,6 +796,15 @@ HRESULT CBrowserHelperObject::OnAttachForgeExtensions(WebBrowser2Ptr webBrowser2
     return S_OK;
 }
 
+void __stdcall CBrowserHelperObject::OnFocusIn(IDispatch *idispatch)
+{
+    logger->debug(L"CBrowserHelperObject::OnFocusIn"
+                  L" -> " + boost::lexical_cast<wstring>(this->m_instanceId));
+
+    DWORD focused = OLECMDIDF_WINDOWSTATE_ENABLED | OLECMDIDF_WINDOWSTATE_USERVISIBLE;
+
+    this->OnWindowStateChanged(focused, focused);
+}
 
 /**
  * Event: OnWindowStateChanged

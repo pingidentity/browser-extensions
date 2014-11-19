@@ -16,6 +16,7 @@ using namespace ATL;
 // aliases
 class CBrowserHelperObject;
 typedef IDispEventSimpleImpl<0, CBrowserHelperObject, &DIID_DWebBrowserEvents2> WebBrowserEvents2;
+typedef IDispEventSimpleImpl<0, CBrowserHelperObject, &DIID_HTMLDocumentEvents2> HtmlDocEvents2;
 typedef CComQIPtr<IWebBrowser2, &IID_IWebBrowser2> WebBrowser2Ptr;
 
 
@@ -27,6 +28,7 @@ class ATL_NO_VTABLE CBrowserHelperObject
       public CComCoClass<CBrowserHelperObject, &CLSID_BrowserHelperObject>,
       public IObjectWithSiteImpl<CBrowserHelperObject>,
       public WebBrowserEvents2,
+      public HtmlDocEvents2,
       public IDispatchImpl<IBrowserHelperObject, &IID_IBrowserHelperObject, &LIBID_ForgeBHOLib, 1, 0> // (frameProxy)
 {
  public:
@@ -46,12 +48,14 @@ BEGIN_SINK_MAP(CBrowserHelperObject)
     SINK_ENTRY_INFO(0, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE,   OnDocumentComplete, &OnDocumentCompleteInfo)
     SINK_ENTRY_INFO(0, DIID_DWebBrowserEvents2, DISPID_WINDOWSTATECHANGED, OnWindowStateChanged, &OnWindowStateChangedInfo)
     SINK_ENTRY_INFO(0, DIID_DWebBrowserEvents2, DISPID_DOWNLOADCOMPLETE, OnDownloadComplete, &OnDownloadCompleteInfo)
+    SINK_ENTRY_INFO(0, DIID_DWebBrowserEvents2, DISPID_HTMLDOCUMENTEVENTS2_ONFOCUSIN, OnFocusIn, &OnFocusInInfo)
 END_SINK_MAP()
 
     static _ATL_FUNC_INFO OnNavigateComplete2Info;
     static _ATL_FUNC_INFO OnDocumentCompleteInfo;
     static _ATL_FUNC_INFO OnWindowStateChangedInfo;
     static _ATL_FUNC_INFO OnDownloadCompleteInfo;
+    static _ATL_FUNC_INFO OnFocusInInfo;
 
  public:
     // IObjectWithSite
@@ -69,6 +73,9 @@ END_SINK_MAP()
     void __stdcall OnDownloadComplete();
     void __stdcall OnWindowStateChanged(DWORD flags, DWORD mask);
 
+    // HTMLDocumentEvents2
+    void __stdcall OnFocusIn(IDispatch *idispatch);
+
  private:
     HRESULT OnConnect(IUnknown *iunknown);
     HRESULT OnDisconnect(IUnknown *iunknown);
@@ -78,6 +85,7 @@ END_SINK_MAP()
     HRESULT OnAttachForgeExtensions(WebBrowser2Ptr webBrowser2,
             const wstring& location,
             const wstring& eventsource);
+    HRESULT DetachFromDocEvents();
     
     // Keep COM servers around for duration of BHO life
     NativeAccessible::pointer  m_nativeAccessible;
@@ -93,6 +101,9 @@ END_SINK_MAP()
     
     // used to filter secondary requests
     CComPtr<IWebBrowser2> m_webBrowser2;
+
+    // used to listen for changes in focus of browser windows
+    CComPtr<IHTMLDocument2> m_currentDocument;
 
     // track window focus
     struct {
