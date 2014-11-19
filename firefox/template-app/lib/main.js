@@ -502,3 +502,9 @@ def get_ba_icon(ba):
 		onAttach: attachWorker
 	});
 };
+
+exports.onUnload = function (reason) {
+	if ((reason === "uninstall") || (reason === "disable")) {
+		ss.storage.prefs = {};	
+	}	
+};
