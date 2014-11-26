@@ -326,7 +326,7 @@ var apiImpl = {
 	},
 	prefs: {
 		get: function(params, success, error) {
-			success(ss.storage.prefs[params.key] === undefined ? "undefined" : ss.storage.prefs[params.key]);
+			success(ss.storage.prefs[params.key] === undefined ? null : ss.storage.prefs[params.key]);
 		},
 		set: function(params, success, error) {
 			ss.storage.prefs[params.key] = params.value
