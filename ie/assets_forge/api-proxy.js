@@ -50,8 +50,9 @@ window.dumpXML = dumpXML;
 
 /** 
  * Utilities: Array.indexOf
+ * Includes test for older quirks mode doctypes
  */
-if (typeof Array.prototype.indexOf !== 'function') {
+if (typeof Array.prototype.indexOf !== 'function' && (typeof document.documentMode === "number" && document.documentMode > 5)) {
     Array.prototype.indexOf = function (object, index) {
         for (var i = (index || 0); i < this.length; i++) {
             if (this[i] === object) {
