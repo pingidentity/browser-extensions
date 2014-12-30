@@ -47,7 +47,7 @@ internal.priv.send = function (data) {
 							cb(reply);
 						});
 				}
-				internal.priv.receive(JSON.stringify(reply));
+				internal.priv.receive(reply);
 			}
 		});
 	}
