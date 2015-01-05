@@ -61,11 +61,11 @@ all_urls = ('<all_urls>' in activate_patterns) or ('http://*/*' in activate_patt
 					<string>PACKAGE_NAME_HERE-popover</string>
 					{% if "default_width" in plugins["button"]["config"] %}\
 						<key>Width</key>
-    					<string>$plugins.button.config.default_width</string>
+    					<real>$plugins.button.config.default_width</real>
 					{% end %}\
 					{% if "default_height" in plugins["button"]["config"] %}\
 						<key>Height</key>
-    					<string>$plugins.button.config.default_height</string>
+    					<real>$plugins.button.config.default_height</real>
 					{% end %}\
 				</dict>
 			</array>
