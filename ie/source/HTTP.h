@@ -180,6 +180,7 @@ class ATL_NO_VTABLE HTTPBindStatusCallback
                        L" -> " + boost::lexical_cast<wstring>(responseCode) +
                        L" -> " + boost::lexical_cast<wstring>(responseHeaders));*/
 
+         // The responseHeaders string is actually the raw response including status line and headers
          if (responseCode < 400) { 
              return S_OK;
          }

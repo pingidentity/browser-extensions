@@ -95,6 +95,7 @@ static bool wstring_match_wild(const wstring& wildcard, const wstring& s) {
     return boost::regex_match(s, boost::wregex(rex, boost::wregex::icase));
 }
 
+DWORD widestring_from_utf8(const char *s, int size, wchar_t **output);
 
 #include <windows.h>
 
