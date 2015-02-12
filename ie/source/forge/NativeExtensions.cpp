@@ -339,7 +339,7 @@ STDMETHODIMP CNativeExtensions::getURL(BSTR url, BSTR *out_url)
         _AtlModule.modulePath / bfs::wpath(L"src") / bfs::wpath(wideUrl);
 
     wstring ret = L"file:///" + wstring_replace(path.wstring(), '\\', '/');
-    *out_url = ::SysAllocString(ret.c_str()); // TODO leak
+    *out_url = ::SysAllocString(ret.c_str());
 
     return S_OK;
 }
