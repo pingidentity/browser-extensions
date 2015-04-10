@@ -111,7 +111,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
     logger->debug(L"BHO::DllMain _AtlModule.DllMain -> " + 
                   boost::lexical_cast<wstring>(result));
     
-    logger->debug(L"----------------------------------------------------------\n");
+    logger->debug(L"----------------------------------------------------------");
 
     return result;
 }

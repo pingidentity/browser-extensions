@@ -200,6 +200,7 @@ LRESULT NotificationWindow::OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOO
     delete format;
     delete titleFont;
     delete textFont;
+    delete blackPen; // LEAKFIX
     //delete bitmap;
     delete backgroundBrush;
     delete graphics;

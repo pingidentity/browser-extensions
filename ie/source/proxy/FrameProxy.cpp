@@ -83,7 +83,8 @@ bool FrameProxy::Is64BitProcess(DWORD processId)
  */
 bool FrameProxy::InjectDLL(HINSTANCE instance, DWORD processId)
 {
-    logger->debug(L"FrameProxy::InjectDLL");
+    logger->debug(L"FrameProxy::InjectDLL"
+                  L" -> " + boost::lexical_cast<wstring>(processId));
 
     STARTUPINFO startupInfo;
     ::ZeroMemory(&startupInfo, sizeof(startupInfo));
@@ -185,7 +186,11 @@ FrameProxy::FrameProxy(const wstring& uuid, HINSTANCE instance,
     m_messageChannel = new Channel(L"IeBarMsgPoint", ::GetCurrentProcessId());
     if (m_messageChannel->IsFirst()) {
       HANDLE thread = ::CreateThread(NULL, 0, MessageHandlerListener, m_messageChannel, 0, NULL);
-      ::CloseHandle(thread);
+      if (thread)
+      {
+          // close handle only if create thread suceeded
+          ::CloseHandle(thread);
+      }
     }
     if (m_commandChannel->IsFirst()) {
         this->isOnline = this->InjectDLL(instance, processId);
@@ -210,6 +215,16 @@ FrameProxy::FrameProxy(const wstring& uuid, HINSTANCE instance,
 FrameProxy::~FrameProxy() 
 {
     logger->debug(L"FrameProxy::~FrameProxy");
+    if (m_commandChannel)
+    {
+        delete m_commandChannel;  // LEAKFIX
+        m_commandChannel = NULL;
+    }
+    if (m_messageChannel)
+    {
+        delete m_messageChannel; // LEAKFIX
+        m_messageChannel = NULL;
+    }
 }
 
 

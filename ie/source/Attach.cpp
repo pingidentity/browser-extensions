@@ -175,6 +175,7 @@ HRESULT Attach::NativeMessaging(const wstring& uuid,
                                  DISPATCH_PROPERTYPUT, 
                                  &params, 
                                  NULL, NULL, NULL); 
+    delete[] params.rgvarg; // LEAKFIX
     if (FAILED(hr)) {
         logger->error(L"Attach::NativeMessaging failed to attach"
                       L" -> " + logger->parse(hr));
@@ -242,6 +243,7 @@ HRESULT Attach::NativeTabs(IDispatchEx *htmlWindow2Ex,
                                  DISPATCH_PROPERTYPUT, 
                                  &params, 
                                  NULL, NULL, NULL); 
+    delete[] params.rgvarg; // LEAKFIX
     if (FAILED(hr)) {
         logger->error(L"Attach::NativeTabs failed to attach"
                       L" -> " + logger->parse(hr));
@@ -298,6 +300,7 @@ HRESULT Attach::NativeControls(const wstring& uuid,
                                  DISPATCH_PROPERTYPUT, 
                                  &params, 
                                  NULL, NULL, NULL); 
+    delete[] params.rgvarg; // LEAKFIX
     if (FAILED(hr)) {
         logger->error(L"Attach::NativeControls failed to attach"
                       L" -> " + logger->parse(hr));
@@ -333,6 +336,7 @@ HRESULT Attach::ForgeScriptInjectionTag(const wstring& uuid,
             DISPATCH_PROPERTYPUT,
             &params,
             NULL, NULL, NULL);
+    delete[] params.rgvarg; // LEAKFIX
     if (FAILED(hr)) {
         logger->error(L"Attach::ForgeScriptInjectionTag failed to attach"
                       L" -> " + logger->parse(hr));

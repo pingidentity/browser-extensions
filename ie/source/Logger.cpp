@@ -17,9 +17,33 @@ Logger::Logger(Level level, const std::wstring& filename)
     } else {
         this->enabled = true;
     }
+#ifdef LOGGER_TIMESTAMP
+    // find the fraction value of the current millisecond
+    m_dAdjustment = 0;
+    if (!QueryPerformanceFrequency(&m_llFreq))
+        m_llFreq.QuadPart = 0;
+    DWORD_PTR oldmask = SetThreadAffinityMask(GetCurrentThread(), 0);
+    LARGE_INTEGER llCounter;
+    if (QueryPerformanceCounter(&llCounter))
+    {
+        SYSTEMTIME st;
+        GetLocalTime(&st);
+        if (m_llFreq.QuadPart)
+        {
+            m_dAdjustment = (double)(llCounter.QuadPart) / (double)(m_llFreq.QuadPart);
+            m_dAdjustment = m_dAdjustment - (long)m_dAdjustment; // m_dAdjustment now contains only fraction of the counter/freq
+            double dMS = (double)st.wMilliseconds / 1000; // compute the milliseconds as double
+            m_dAdjustment -= dMS; // compute the adjustement
+            m_dAdjustment = m_dAdjustment - (long)m_dAdjustment; // need only the fraction (in case it rounds up)
+        }
+    }
+    SetThreadAffinityMask(GetCurrentThread(), oldmask);
+#endif // LOGGER_TIMESTAMP
 }
 
-
+#include <IEPMapi.h>
+#include <KnownFolders.h>
+#pragma comment(lib, "IEPMapi.lib")
 /**
  * Logger::initialize
  */
@@ -44,14 +68,33 @@ void Logger::initialize(const boost::filesystem::wpath& path)
                                                expandedPath, MAX_PATH);
         if (len > 0 && len <= MAX_PATH) {
             m_filename = expandedPath;
+
+            // try to open the file to see if it writeable
+            std::wofstream fs;
+            fs.open(m_filename, std::ios::out | std::ios::app);
+            if (!fs.is_open()) 
+            {
+                // get writeable path from IE (EPM can restrict access to the path provided)
+                LPWSTR writeableFolder;
+                HRESULT hr = ::IEGetWriteableFolderPath(FOLDERID_LocalAppDataLow, &writeableFolder);
+                if (SUCCEEDED(hr))
+                {
+                    m_filename = wstring(writeableFolder) + L"\\forgeRestricted.log";
+                    CoTaskMemFree(writeableFolder);
+                }
+            }
+            else
+            {
+                fs.close();
+            }
         }
         else {
             this->error(L"Logger::Logger failed to expand environment variables in path");
             m_filename = manifest->logging.filename;
         }
 
-        this->debug(L"Logger::Logger using endpoint: " + m_filename);
         this->enabled = true;
+        this->debug(L"Logger::Logger using endpoint: " + m_filename);
     } else {
         this->enabled = false;
     }
@@ -61,6 +104,7 @@ void Logger::initialize(const boost::filesystem::wpath& path)
 /**
  * Logger::write
  */
+#include <strsafe.h>
 void Logger::write(const std::wstring& message, Logger::Level level)
 {
     if (!this->enabled) {
@@ -80,6 +124,9 @@ void Logger::write(const std::wstring& message, Logger::Level level)
         if (m_filename != L"") {
             std::wofstream fs;
             fs.open(m_filename, std::ios::out | std::ios::app);
+#ifdef LOGGER_TIMESTAMP
+            timestamp(fs);
+#endif // LOGGER_TIMESTAMP
             if (level == Logger::ERR) {
                 fs << L"[ERROR] ";
             }
@@ -89,6 +136,53 @@ void Logger::write(const std::wstring& message, Logger::Level level)
     }
 }
 
+#ifdef LOGGER_TIMESTAMP
+void Logger::timestamp(std::wofstream& fs)
+{
+    DWORD dwPID = GetCurrentProcessId();
+    DWORD dwTID = GetCurrentThreadId();
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    LARGE_INTEGER llCounter;
+    wchar_t sTmpTime[30] = {0};
+    wchar_t* pTmpTime = NULL;
+  
+    if (!QueryPerformanceCounter(&llCounter))
+    llCounter.QuadPart = 0;
+
+    if (m_llFreq.QuadPart)
+    {
+        double dHiresFraction = (double)(llCounter.QuadPart) / (double)(m_llFreq.QuadPart) - m_dAdjustment;
+        StringCbPrintf(sTmpTime, sizeof(sTmpTime), L"%f", dHiresFraction - (long)dHiresFraction);
+        pTmpTime = sTmpTime + 2; // the result string should be 0.xxx, so adding 2 shifts past the decimal point
+    }
+    else
+    {
+        StringCbPrintf(sTmpTime, sizeof(sTmpTime), L"%03d000", st.wMilliseconds);
+        pTmpTime = sTmpTime;
+    }
+    if (pTmpTime == NULL) pTmpTime = sTmpTime; // should not ever happen!
+
+    if (wcslen(pTmpTime) != 6)
+    {
+        // not good, the string is not 6 chars
+        pTmpTime[6] = NULL; // trim the string to 6 chars long
+        if (wcslen(pTmpTime) != 6)
+        {
+            // string is shorter, add zeros
+            for (int i=0; i<6; i++)
+            {
+                if (pTmpTime[i] == NULL)
+                pTmpTime[i] = '0';
+            }
+        }
+    }
+
+    wchar_t diagStr[200];
+    StringCbPrintf(diagStr, sizeof(diagStr), L"%04d-%02d-%02d %02d:%02d:%02d.%s [PID=0x%08X(%010lu);TID=0x%08X(%010lu)]: ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, pTmpTime, dwPID, dwPID, dwTID, dwTID);
+    fs << diagStr;  
+}
+#endif
 
 /**
  * Logger::parse(HRESULT)
@@ -107,7 +201,10 @@ std::wstring Logger::parse(HRESULT hr)
     
     std::wstringstream hrhex;
     hrhex << L"0x" << std::hex << hr;
-    
+
+    // remove trailing eoln
+    hrstr.erase(hrstr.find_last_not_of(L" \n\r\t")+1); 
+
     return hrhex.str() + L" -> " + hrstr;
 }
 

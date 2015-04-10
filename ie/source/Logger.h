@@ -3,6 +3,8 @@
 
 using namespace ATL;
 
+#define LOGGER_TIMESTAMP
+
 class Logger {
  public:
     enum Level {
@@ -57,6 +59,11 @@ class Logger {
     void write(const std::wstring& message, Level level = Logger::DBG);
     std::wstring m_filename;
     Level m_level;
+#ifdef LOGGER_TIMESTAMP
+    double m_dAdjustment;
+    LARGE_INTEGER m_llFreq;
+    void timestamp(std::wofstream& fs);
+#endif // LOGGER_TIMESTAMP
 
  public:    
     typedef boost::shared_ptr<Logger> pointer;

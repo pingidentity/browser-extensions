@@ -74,6 +74,8 @@ DECLARE_PROTECT_FINAL_CONSTRUCT()
     Callback::map bg_callbacks;
     Callback::map fg_callbacks;
 
+    void unloadHelper(BSTR uuid, unsigned int instanceId, Callback::map& callbacks, const wstring& desc);
+
     // tabs
     Tab m_activeTab;
     CComPtr<IDispatch> m_activeTabCallback;

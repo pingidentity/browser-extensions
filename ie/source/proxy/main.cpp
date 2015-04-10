@@ -99,7 +99,7 @@ bool InjectDLL(DWORD processId, wchar_t *dll)
     }
 
     if (!::WriteProcessMemory(process, address, path, sizeof(path), NULL)) {
-        ::VirtualFreeEx(process, address, sizeof(path), MEM_RELEASE);
+        ::VirtualFreeEx(process, address, 0, MEM_RELEASE); // 3rd argument must be 0 when using MEM_RELEASE, otherwise the VirtualFreeEx() would fail
         ::CloseHandle(process);
         return error(L"InjectDLL ::WriteProcessMemory");
     }
@@ -121,13 +121,13 @@ bool InjectDLL(DWORD processId, wchar_t *dll)
     HANDLE thread;
     thread = ::CreateRemoteThread(process, NULL, 0, LoadLibraryW, address, 0, NULL);
     if (!thread) {
-        ::VirtualFreeEx(process, address, sizeof(path), MEM_RELEASE);
+        ::VirtualFreeEx(process, address, 0, MEM_RELEASE); // 3rd argument must be 0 when using MEM_RELEASE, otherwise the VirtualFreeEx() would fail
         ::CloseHandle(process);
         return error(L"InjectDLL ::CreateRemoteThread");
     }
 
     ::WaitForSingleObject(thread, INFINITE);
-    ::VirtualFreeEx(process, address, sizeof(path), MEM_RELEASE);
+    ::VirtualFreeEx(process, address, 0, MEM_RELEASE); // 3rd argument must be 0 when using MEM_RELEASE, otherwise the VirtualFreeEx() would fail
 
     //DWORD ec;
     //::GetExitCodeThread( thread, &ec );

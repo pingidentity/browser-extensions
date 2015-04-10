@@ -267,6 +267,43 @@ struct delete_callback {
     }
 };
 
+void CNativeMessaging::unloadHelper(BSTR uuid, unsigned int instanceId, Callback::map& callbacks, const wstring& desc)
+{
+    // This helper function is to delete a callback entry from given array of callbacks.
+    // Its done fairly complicated way to prevent crashes seen on Win8/IE11 where "callbacks[uuid].erase(it)"
+    // may not return immediately but rather cause recursive calls to unload/unloadHelper (even multi-level)
+    // causing memory corruption if the iterator attempts to continue with iteration after each erase.
+    // The safe apprach is to forget about anything being done once the erase() returns and start from the beggining.
+
+    Callback::vector::iterator it = callbacks[uuid].begin();
+    for( ; it != callbacks[uuid].end();)
+    {
+        if (it->use_count())
+        {
+            if ((*it)->tabId == instanceId)
+            {
+//                wstring wid = (*it)->toString(); // need to keep local copy as the erase() wipes it out
+//                logger->debug(L"CNativeMessaging::unload(" + desc + L") before delete: use_count=" +  boost::lexical_cast<wstring>(it->use_count()) + L", instanceId=" +  boost::lexical_cast<wstring>(instanceId) + L": " + wid);
+                callbacks[uuid].erase(it);
+//                logger->debug(L"CNativeMessaging::unload(" + desc + L") after delete - restarting the delete loop: instanceId=" +  boost::lexical_cast<wstring>(instanceId) + L": " + wid);
+
+                it = callbacks[uuid].begin(); // start from the beginning, there could be recursive call which deleted something in between!
+            }
+            else
+            {
+                // skip this one, its not the tabId we are after
+                ++it;
+            }
+        }
+        else
+        {
+            // pending delete (ref_counter is zero) -> don't touch it, just skip it
+            ++it;
+//            logger->debug(L"CNativeMessaging::unload(" + desc + L") pending delete: " +  boost::lexical_cast<wstring>(instanceId));
+        }
+    }
+}
+
 STDMETHODIMP CNativeMessaging::unload(BSTR uuid, unsigned int instanceId)
 {
     logger->debug(L"CNativeMessaging::unload"
@@ -274,9 +311,8 @@ STDMETHODIMP CNativeMessaging::unload(BSTR uuid, unsigned int instanceId)
                   L" -> " + boost::lexical_cast<wstring>(instanceId));
 
     // clean up any callbacks registered for this instance
-    Callback::vector v = fg_callbacks[uuid];
-    v.erase(std::remove_if(v.begin(), v.end(), delete_callback(instanceId)), v.end());
-    fg_callbacks[uuid] = v;
+    unloadHelper(uuid, instanceId, fg_callbacks, L"fg_callbacks");
+    unloadHelper(uuid, instanceId, bg_callbacks, L"bg_callbacks");
 
     // stop tracking the tab object
     m_tabs.erase(instanceId);
@@ -293,7 +329,7 @@ STDMETHODIMP CNativeMessaging::unload(BSTR uuid, unsigned int instanceId)
     }
 
     logger->debug(L"CNativeMessaging::unload clients remaining: " +
-                  boost::lexical_cast<wstring>(m_clients.size()));
+                  boost::lexical_cast<wstring>(m_clients[uuid].size()));
 
     if (m_clients.empty()) {
         return this->shutdown();

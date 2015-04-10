@@ -125,7 +125,7 @@ STDMETHODIMP CNativeBackground::unload(BSTR uuid, unsigned int instanceId)
     }
 
     logger->debug(L"CNativeBackground::unload clients remaining: " +
-                  boost::lexical_cast<wstring>(m_clients.size()));
+                  boost::lexical_cast<wstring>(m_clients[uuid].size()));
 
     if (m_clients.empty()) {
         return this->shutdown();

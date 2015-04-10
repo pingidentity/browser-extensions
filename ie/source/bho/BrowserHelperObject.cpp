@@ -52,7 +52,7 @@ CBrowserHelperObject::CBrowserHelperObject()
       m_nativeAccessible(),
       m_frameProxy(NULL)
 {
-    logger->debug(L"\n----------------------------------------------------------");
+    logger->debug(L"----------------------------------------------------------");
     logger->debug(L"BrowserHelperObject Initializing...");
 
     logger->debug(L"BrowserHelperObject::BrowserHelperObject"
@@ -78,6 +78,18 @@ CBrowserHelperObject::CBrowserHelperObject()
     }
 }
 
+CBrowserHelperObject::~CBrowserHelperObject()
+{
+/*
+    if (m_frameProxy)
+    {
+        // it seems the m_frameProxy might need to be deleted but don't do it, it causes double free/memory corruption as it is likely done from somewhere else
+        logger->debug(L"CBrowserHelperObject::~CBrowserHelperObject unFIXED LEAK (" + boost::lexical_cast<wstring>(sizeof(*m_frameProxy)) + L" bytes)");
+        delete m_frameProxy;
+        m_frameProxy = NULL;
+    }
+*/
+}
 
 /**
  * Interface: IObjectWithSite::SetSite
@@ -175,6 +187,7 @@ HRESULT CBrowserHelperObject::OnConnect(IUnknown *unknown)
                                       default_title, 
                                       default_icon.wstring());
         if (!m_frameProxy->IsOnline()) {
+            delete m_frameProxy; // LEAKFIX
             m_frameProxy = NULL;
             logger->error(L"CBrowserHelperObject::OnConnect failed to connect to FrameProxy");
             goto nativebackground;
@@ -221,6 +234,9 @@ HRESULT CBrowserHelperObject::OnConnect(IUnknown *unknown)
         return hr;
     }         
 
+    logger->debug(L"BrowserHelperObject::OnConnect done" 
+                  L" -> " + _AtlModule.moduleManifest->uuid +
+                  L" -> " + boost::lexical_cast<wstring>(m_instanceId));
     return S_OK;
 }
 
@@ -268,8 +284,8 @@ HRESULT CBrowserHelperObject::OnDisconnect(IUnknown *unknown)
     if (m_nativeAccessible) m_nativeAccessible.reset();
 
     // NativeBackground
-    logger->debug(L"BrowserHelperObject::OnDisconnect() release NativeBackground"); 
     if (m_nativeBackground) {
+        logger->debug(L"BrowserHelperObject::OnDisconnect() release NativeBackground"); 
         hr = m_nativeBackground->unload(CComBSTR(_AtlModule.moduleManifest->uuid.c_str()), 
                                         m_instanceId);
         if (FAILED(hr)) {
@@ -278,6 +294,10 @@ HRESULT CBrowserHelperObject::OnDisconnect(IUnknown *unknown)
                          L" -> " + boost::lexical_cast<wstring>(m_instanceId) +
                          L" -> " + logger->parse(hr));
         }
+    }
+    else
+    {
+        logger->debug(L"BrowserHelperObject::OnDisconnect() NativeBackground does not exist"); 
     }
 
     // BrowserHelperObject    

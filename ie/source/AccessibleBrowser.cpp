@@ -68,6 +68,7 @@ Accessible::vector Accessible::children()
     if (FAILED(hr)) {
         logger->debug(L"Accessible::children failed to get accessors"
                       L" -> " + logger->parse(hr));
+        delete[] accessors; // LEAKFIX
         return ret;
     }
 
@@ -90,6 +91,7 @@ Accessible::vector Accessible::children()
         ret.push_back(accessor);
     }
     
+    delete[] accessors; // LEAKFIX
     return ret;
 }
 

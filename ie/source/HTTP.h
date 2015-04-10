@@ -46,6 +46,11 @@ class ATL_NO_VTABLE HTTPBindStatusCallback
              ::GlobalFree(this->data);
              this->data = NULL;
          }
+         if (this->http)
+         {
+             delete(this->http); // LEAKFIX
+             this->http = NULL;
+         }
      }
 
      HTTP* http;
@@ -121,13 +126,13 @@ class ATL_NO_VTABLE HTTPBindStatusCallback
          HRESULT hr;
          hr = ::CoInitializeEx(NULL, COINIT_APARTMENTTHREADED); 
          if (FAILED(hr)) {
-             logger->error(L"HTTP::OnBindStatusCallback CoinitializeEx failed"
+             logger->error(L"HTTPBindStatusCallback::OnStartBinding CoinitializeEx failed"
                            L" -> " + logger->parse(hr));
              return hr;
          }
          hr = CBindStatusCallback<T, flags>::OnStartBinding(reserved, binding);
          if (FAILED(hr)) {
-             logger->error(L"HTTP::OnBindStatusCallback CBindStatusCallback failed"
+             logger->error(L"HTTPBindStatusCallback::OnStartBinding ::OnStartBinding failed"
                            L" -> " + logger->parse(hr));
          }
          ::CoUninitialize();

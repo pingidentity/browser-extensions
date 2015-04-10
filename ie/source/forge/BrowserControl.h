@@ -25,9 +25,11 @@ class BrowserControl
     // Messages
     BEGIN_MSG_MAP(BrowserControl)
         MESSAGE_HANDLER(WM_CREATE,    OnCreate)
+        MESSAGE_HANDLER(WM_DESTROY,   OnDestroy)
     END_MSG_MAP()
 
     LRESULT OnCreate   (UINT msg, WPARAM wparam, LPARAM lparam, BOOL &handled);
+    LRESULT OnDestroy  (UINT msg, WPARAM wparam, LPARAM lparam, BOOL &handled);
 
     // Event Sinks
     BEGIN_SINK_MAP(BrowserControl)
@@ -85,9 +87,16 @@ private:
         ~Subclasser() {
             logger->debug(L"Subclasser::~Subclasser");
             HWND hwnd;
-            hwnd = this->UnsubclassWindow();
-            if (hwnd != this->hwnd_ie) {
-                logger->error(L"Subclasser::~Subclasser failed to unsubclass IE");
+            if (this->m_hWnd)
+            {
+                hwnd = this->UnsubclassWindow();
+                if (hwnd != this->hwnd_ie) {
+                    logger->error(L"Subclasser::~Subclasser failed to unsubclass IE");
+                }
+            }
+            else
+            {
+                logger->warn(L"Subclasser::~Subclasser no window");
             }
             this->hwnd_ie = NULL;
         }

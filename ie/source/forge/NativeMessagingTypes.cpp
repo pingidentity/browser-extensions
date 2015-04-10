@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "NativeMessagingTypes.h"
 
+#define RPC_E_SERVER_UNAVAILABLE 0x800706ba
 
 /**
  * Type: Tab
@@ -61,18 +62,20 @@ Tab::Tab(int id, int index, int windowId,
 Callback::Callback(const wstring& type, IDispatch *callback, IDispatch *error) 
     : tabId(0), type(type), callback(callback), error(error) 
 {
+    logger->debug(L"Callback::Callback tabId0");
 }
 
 
 Callback::Callback(UINT tabId, const wstring& type, IDispatch *callback, IDispatch *error) 
     : tabId(tabId), type(type), callback(callback), error(error) 
 {
+    logger->debug(L"Callback::Callback tabId=" + boost::lexical_cast<wstring>(tabId));
 }
 
 
 Callback::~Callback() 
 {
-    logger->debug(L"Callback::~Callback");
+    logger->debug(L"Callback::~Callback tabId=" + boost::lexical_cast<wstring>(tabId));
 }
 
 
@@ -89,18 +92,23 @@ HRESULT Callback::Dispatch(const wstring& content, IDispatch *reply)
     if (SUCCEEDED(hr)) {
         return S_OK;
     }
-    
+
     wstring e = L"Callback::Dispatch failed"
         L" -> " + logger->parse(hr) +
         L" -> " + content;
     logger->error(e);
-    CComQIPtr<IDispatchEx> errorex(this->error);
-    hr = CComDispatchDriver(errorex).Invoke1((DISPID)0,
-                                             &CComVariant(e.c_str()));
-    if (FAILED(hr)) {
-        logger->error(L"Callback::Dispatch failed to dispatch error"
-                      L" -> " + logger->parse(hr) +
-                      L" -> " + e);
+
+    if (hr != RPC_E_SERVER_UNAVAILABLE) 
+    {
+        // calling error callback only when previous failure was not RPC_E_SERVER_UNAVAILABLE as this can cause crash
+        CComQIPtr<IDispatchEx> errorex(this->error);
+        hr = CComDispatchDriver(errorex).Invoke1((DISPID)0,
+                                                 &CComVariant(e.c_str()));
+        if (FAILED(hr)) {
+            logger->error(L"Callback::Dispatch failed to dispatch error"
+                          L" -> " + logger->parse(hr) +
+                          L" -> " + e);
+        }
     }
     return hr;
 }

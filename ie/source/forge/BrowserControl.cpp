@@ -74,13 +74,28 @@ BrowserControl::~BrowserControl()
 
 
 /** 
- * Message: On
+ * Message: OnCreate
  */
 LRESULT BrowserControl::OnCreate(UINT msg, WPARAM wparam, LPARAM lparam, BOOL &handled) 
 {
     LRESULT lr;
+    logger->debug(L"BrowserControl::OnCreate");
     lr = this->DefWindowProc(msg, wparam, lparam);
     this->AttachControl(true);
+    logger->debug(L"BrowserControl::OnCreate done");
+    return lr;
+}
+
+
+/** 
+ * Message: On
+ */
+LRESULT BrowserControl::OnDestroy(UINT msg, WPARAM wparam, LPARAM lparam, BOOL &handled) 
+{
+    LRESULT lr;
+    logger->debug(L"BrowserControl::OnDestroy");
+    lr = this->DefWindowProc(msg, wparam, lparam);
+    logger->debug(L"BrowserControl::OnDestroy done");
     return lr;
 }
 

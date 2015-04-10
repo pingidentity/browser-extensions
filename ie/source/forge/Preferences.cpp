@@ -220,7 +220,14 @@ LONG Preferences::RegistryValue(HKEY key, const wstring& subkey,
                                        (LPBYTE)buf, &readsize)) 
            == ERROR_MORE_DATA) {
         bufsize *= 2;
-        buf = (WCHAR*)realloc(buf, bufsize);
+        WCHAR* newbuf = (WCHAR*)realloc(buf, bufsize);
+        if (newbuf == NULL) 
+        {
+            // error during realloc, need to free the original memory and bail out to avoid trap
+            free(buf);
+            return ERROR_NOT_ENOUGH_MEMORY;
+        }
+        buf = newbuf;
         memset(buf, 0, sizeof(WCHAR));
         readsize = bufsize;
     }

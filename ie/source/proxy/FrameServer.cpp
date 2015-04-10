@@ -28,7 +28,11 @@ FrameServer::FrameServer(bool startListener)
 
     if (startListener) {
         HANDLE thread = ::CreateThread(NULL, 0, FrameServer::ProxyListen, this, 0, NULL);
-        ::CloseHandle(thread);
+        if (thread)
+        {
+            // close handle only if create thread suceeded
+            ::CloseHandle(thread);
+        }
     }
 }
 
@@ -63,7 +67,7 @@ bool FrameServer::Release()
 
     ATL::CComCritSecLock<CComAutoCriticalSection> lock(FrameServer::lock, true);
 
-    if (++FrameServer::refCount == 0) {
+    if (--FrameServer::refCount == 0) {  // LEAKFIX/REFCOUNTFIX
         delete FrameServer::instance;
         FrameServer::instance = NULL;
         return true;

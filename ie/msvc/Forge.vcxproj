@@ -144,7 +144,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEBUG=1;WIN32;_WINDOWS;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STACKWALKER;DEBUG=1;WIN32;_WINDOWS;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\..\external;$(SolutionDir)\..\source;$(SolutionDir)\..\build;C:\dev\boost_1_52_0</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -187,7 +187,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEBUG=1;WIN32;_WINDOWS;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STACKWALKER;DEBUG=1;WIN32;_WINDOWS;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\..\external;$(SolutionDir)\..\source;$(SolutionDir)\..\build;C:\dev\boost_1_52_0</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -481,6 +481,12 @@
     <ClCompile Include="..\source\proxy\FrameProxy.cpp" />
     <ClCompile Include="..\source\proxy\FrameServer.cpp" />
     <ClCompile Include="..\source\ScriptExtensions.cpp" />
+    <ClCompile Include="..\source\SW.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\source\util.cpp" />
     <ClCompile Include="..\source\WindowsMessage.cpp" />
   </ItemGroup>
@@ -518,6 +524,7 @@
     <ClInclude Include="..\source\proxy\FrameProxy.h" />
     <ClInclude Include="..\source\proxy\FrameServer.h" />
     <ClInclude Include="..\source\ScriptExtensions.h" />
+    <ClInclude Include="..\source\SW.h" />
     <ClInclude Include="..\source\util.h" />
     <ClInclude Include="..\source\vendor.h" />
     <ClInclude Include="..\source\WindowsMessage.h" />

@@ -157,7 +157,7 @@ HRESULT button_setTitleCommand::exec(HWND toolbar, HWND target, int idCommand)
                       L" -> tb_fetbuttoninfo failed");
         return S_OK;
     } 
-    delete buttoninfo.pszText;
+    delete[] buttoninfo.pszText; // LEAKFIX
 
     CComBSTR btitle(title);
     buttoninfo.pszText = btitle;  // TODO

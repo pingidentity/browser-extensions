@@ -122,7 +122,7 @@ STDMETHODIMP CNativeControls::load(BSTR _uuid, BSTR _extensionPath, unsigned int
         if (!parent) { logger->error(L"CNativeControls::load failed: Shell DocObject View"); return E_FAIL; }
         parent = ::FindWindowEx(parent, NULL, L"Internet Explorer_Server", NULL);
         if (!parent) { logger->error(L"CNativeControls::load failed: Internet Explorer_Server"); return E_FAIL; }*/
-        
+
         POINT point; point.x = 0; point.y = 0; 
         popup = PopupWindow::pointer(new PopupWindow(uuid, point, url));
         HWND hwnd;
@@ -152,6 +152,15 @@ STDMETHODIMP CNativeControls::unload(BSTR uuid, unsigned int instanceId)
     logger->debug(L"CNativecontrols::unload"
                   L" -> " + wstring(uuid) +
                   L" -> " + boost::lexical_cast<wstring>(instanceId));
+
+    // need to destroy the popup created in load() to avoid holding COM object reference and lingering dllhost.exe 
+    PopupWindow::pointer popup = m_popupWindows[uuid];
+    if (popup) { 
+        logger->debug(L"CNativeControls::unload destroying popup"
+                      L" -> " + wstring(uuid));
+        popup->DestroyWindow();
+        m_popupWindows[uuid] = NULL;
+    }
 
     if (m_frameProxy) {
         delete m_frameProxy;

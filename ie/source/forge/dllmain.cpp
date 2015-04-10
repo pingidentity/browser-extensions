@@ -84,7 +84,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
         logger->debug(L"Forge::DllMain _AtlModule.DllMain -> unknown fatal exception");
     }
     
-    logger->debug(L"----------------------------------------------------------\n");
+    logger->debug(L"----------------------------------------------------------");
 
     return result;
 }

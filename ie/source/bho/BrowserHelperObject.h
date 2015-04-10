@@ -33,6 +33,7 @@ class ATL_NO_VTABLE CBrowserHelperObject
 {
  public:
     CBrowserHelperObject();
+    ~CBrowserHelperObject();
     
 DECLARE_GET_CONTROLLING_UNKNOWN()
 DECLARE_REGISTRY_RESOURCEID(IDR_BROWSERHELPEROBJECT)
