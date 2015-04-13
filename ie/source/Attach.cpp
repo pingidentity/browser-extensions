@@ -109,6 +109,7 @@ HRESULT Attach::NativeExtensions(const wstring& uuid,
                                  DISPATCH_PROPERTYPUT, 
                                  &params, 
                                  NULL, NULL, NULL); 
+    delete[] params.rgvarg; // LEAKFIX
     if (FAILED(hr)) {
         logger->error(L"Attach::NativeExtensions failed to attach"
                       L" -> " + logger->parse(hr));
