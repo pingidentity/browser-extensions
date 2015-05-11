@@ -40,8 +40,9 @@ void HTTP::OnData(BindStatusCallback *caller, BYTE *bytes, DWORD size)
         if (FAILED(hr)) {
             logger->error(L"HTTP::OnData Failed to invoke error callback" +
                     logger->parse(hr));
-            return;
         }
+        delete[] wide_response;
+        return; // need to bail out as the constructor for the wstring 'response' can crash if passing NULL
     }
 
     // transfer complete
