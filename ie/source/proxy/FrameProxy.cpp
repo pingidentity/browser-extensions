@@ -192,6 +192,11 @@ FrameProxy::FrameProxy(const wstring& uuid, HINSTANCE instance,
           ::CloseHandle(thread);
       }
     }
+    else {
+        // only the first channel used by the MessageHandlerListener() is needed, all other can be deleted immediately
+        delete m_messageChannel;
+        m_messageChannel = NULL;
+    }
     if (m_commandChannel->IsFirst()) {
         this->isOnline = this->InjectDLL(instance, processId);
     } else {
@@ -220,11 +225,7 @@ FrameProxy::~FrameProxy()
         delete m_commandChannel;  // LEAKFIX
         m_commandChannel = NULL;
     }
-    if (m_messageChannel)
-    {
-        delete m_messageChannel; // LEAKFIX
-        m_messageChannel = NULL;
-    }
+    // deleting of the m_messageChannel is done in the constructor or MessageHandlerListener()
 }
 
 
@@ -347,6 +348,8 @@ DWORD FrameProxy::MessageHandlerListener(LPVOID param)
         }
     }
     
+    logger->debug(L"FrameProxy::MessageHandlerListener deleting channel used by the listener -> " + boost::lexical_cast<wstring>(channel));
+    delete channel;
     return 0;
 }
 
