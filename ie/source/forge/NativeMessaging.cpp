@@ -227,6 +227,58 @@ STDMETHODIMP CNativeMessaging::get_tabs(BSTR uuid, IDispatch *success, IDispatch
     return CComDispatchDriver(success).Invoke1((DISPID)0, &CComVariant(rawTabsArray));
 }
 
+/**
+ * Method: NativeMessaging::get_tab
+ *
+ * @param uuid
+ *
+ * @returns Tab
+ */
+STDMETHODIMP CNativeMessaging::get_tab(BSTR uuid, IDispatch *callback)
+{
+    HRESULT hr;
+
+    logger->debug(L"NativeMessaging::get_tab"
+                  L" -> " + wstring(uuid) +
+                  L" -> " + boost::lexical_cast<wstring>(callback));
+
+    if (!callback) {
+        logger->error(L"NativeMessaging::get_tab no callback");
+        return S_OK;
+    }
+
+    CComPtr<ITypeInfo> tabT;
+    hr = ::CreateDispTypeInfo(&Tab::Interface, LOCALE_SYSTEM_DEFAULT,
+                              &tabT);
+    if (FAILED(hr) || !tabT) {
+        logger->error(L"NativeMessaging::get_tab "
+                      L"failed to create tabT"
+                      L" -> " + logger->parse(hr));
+        return hr;
+    }
+    CComPtr<IUnknown> tabI;
+	
+	Tab tab;
+	tab.id = m_instanceId;
+	tab.url = m_activeTab.url;
+
+	hr = ::CreateStdDispatch(NULL, &tab, tabT, &tabI);
+    if (FAILED(hr) || !tabI) {
+        logger->error(L"NativeMessaging::get_tab "
+                      L"failed to create tabI"
+                      L" -> " + logger->parse(hr));
+        return hr;
+    }
+
+    hr = CComDispatchDriver(callback).Invoke1((DISPID)0, &CComVariant(tabI));
+    if (FAILED(hr)) {    
+        logger->error(L"NativeMessaging::get_tab "
+                      L"failed to invoke callback"
+                      L" -> " + logger->parse(hr));
+    }
+
+    return hr;
+}
 
 /**
  * Method: NativeMessaging::load
@@ -239,7 +291,7 @@ STDMETHODIMP CNativeMessaging::load(BSTR uuid, unsigned int instanceId)
     /*logger->debug(L"CNativeMessaging::load"
                   L" -> " + wstring(uuid) +
                   L" -> " + boost::lexical_cast<wstring>(instanceId));*/
-    
+    m_instanceId = instanceId;
     m_clients[uuid].insert(instanceId);
 
     return S_OK;
