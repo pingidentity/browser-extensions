@@ -547,6 +547,19 @@ var apiImpl = {
                 });
         },
 
+        getTab: function(params, success, error) {
+            loggerpriv("tabs.getTab" +
+            " -> " + params +
+            " -> " + typeof success +
+            " -> " + typeof error);
+            window.messaging.get_tab(
+                forge.config.uuid,
+                function(tabInfo) {
+                    if (typeof success !== "function") return;
+                    success({ id: tabInfo.id, url: tabInfo.url });
+                });
+        },
+
         onTabSelectionChanged: function(params, success, error) {
             loggerpriv("tabs.onTabSelectionChanged" +
             " -> " + params +
