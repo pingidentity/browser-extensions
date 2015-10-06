@@ -260,7 +260,9 @@ STDMETHODIMP CNativeMessaging::get_tab(BSTR uuid, IDispatch *callback)
 	
 	Tab tab;
 	tab.id = m_instanceId;
-	tab.url = m_activeTab.url;
+	// TO-DO: in case we need to use the tab URL in the future, firstly, 
+	// we should find correct tab with tabId above.
+	//tab.url = m_activeTab.url;
 
 	hr = ::CreateStdDispatch(NULL, &tab, tabT, &tabI);
     if (FAILED(hr) || !tabI) {
