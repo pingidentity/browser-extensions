@@ -86,6 +86,15 @@ forge['tabs'] = {
 	},
 
 	/**
+	 * Returns information on the tab which loaded content script
+	 * 
+	 * @param {function({id: string, url: string})=} success
+	 */
+	'getTab': function(success) {
+		internal.priv.call("tabs.getTab", {}, success, null);	
+	},
+
+	/**
 	 * Fires whenever the tab selection changes
 	 * 
 	 * @param {function({id: string, url: string})=} success

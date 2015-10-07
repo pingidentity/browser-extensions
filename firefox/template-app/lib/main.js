@@ -490,6 +490,7 @@ def get_ba_icon(ba):
 			}
 			worker.postMessage({type: "css", files: files});
 			{% end %}
+			worker.port.emit('get_tab', {id: worker.tab.id, url: worker.tab.url});
 		}
 	});
 {% end %}{% end %}

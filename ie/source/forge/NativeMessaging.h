@@ -56,7 +56,7 @@ DECLARE_PROTECT_FINAL_CONSTRUCT()
     STDMETHOD(load)         (BSTR uuid, unsigned int instanceId);
     STDMETHOD(unload)       (BSTR uuid, unsigned int instanceId);
     STDMETHOD(tabs_set)     (BSTR uuid, UINT instanceId, BSTR url, BSTR title, BOOL focused);
-    STDMETHOD(tabs_active)  (BSTR uuid, IDispatch *callback, UINT *out_tabId);
+	STDMETHOD(tabs_active)  (BSTR uuid, IDispatch *callback, UINT *out_tabId);
     STDMETHOD(fg_listen)(BSTR uuid, UINT tabId, BSTR type, IDispatch *callback, IDispatch * error);
     STDMETHOD(fg_broadcast)(BSTR uuid, BSTR type, BSTR content, IDispatch *callback, IDispatch *error);
     STDMETHOD(fg_toFocussed)(BSTR uuid, BSTR type, BSTR content, IDispatch *callback, IDispatch *error);
@@ -66,7 +66,8 @@ DECLARE_PROTECT_FINAL_CONSTRUCT()
     STDMETHOD(bg_toFocussed)(BSTR uuid, BSTR type, BSTR content, IDispatch *callback, IDispatch *error);
     STDMETHOD(active_tab_listen) (BSTR uuid, IDispatch *callback);
     STDMETHOD(get_tabs) (BSTR uuid, IDispatch *callback, IDispatch *error);
-
+	STDMETHOD(get_tab)  (BSTR uuid, IDispatch *callback);
+    
  protected:
     HRESULT shutdown();
 
@@ -82,6 +83,8 @@ DECLARE_PROTECT_FINAL_CONSTRUCT()
 
     typedef std::map<int, Tab> TabMap;
     TabMap m_tabs; // Tab.id -> Tab
+
+	unsigned int m_instanceId;
 
     std::map<wstring, uintset> m_clients; // { uuid, [instanceId] }
 };
