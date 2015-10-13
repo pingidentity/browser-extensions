@@ -137,7 +137,7 @@ var apiImpl = {
 	button: {
 		setIcon: function (url, success, error) {		
 			if (button) {
-				button.state("window", { "icon" : url });
+				button.icon = url;
 				success()
 			} else {
 				error({message: 'Button does not exist', type: "UNAVAILABLE"});
@@ -148,7 +148,7 @@ var apiImpl = {
 				if (url && url.indexOf("http://") !== 0 && url.indexOf("https://") !== 0) {
 					url = require("self").data.url('src'+(url.substring(0,1) == '/' ? '' : '/')+url);
 				}
-				button.state("window", { "url" : url });
+				button.url = url;
 				success();
 			} else {
 				error({message: 'Button does not exist', type: "UNAVAILABLE"});
@@ -156,7 +156,7 @@ var apiImpl = {
 		},
 		setTitle: function (title, success, error) {
 			if (button) {
-				button.state("window", { "label" : title });			
+				button.label = title;		
 				success();
 			} else {
 				error({message: 'Button does not exist', type: "UNAVAILABLE"});
@@ -164,7 +164,7 @@ var apiImpl = {
 		},
 		setBadge: function (badgeText, success, error) {
 			if (button) {
-				button.state("window", { "badge" : badgeText });				
+				button.badge = badgeText;			
 				success();
 			} else {
 				error({message: 'Button does not exist', type: "UNAVAILABLE"});
@@ -173,7 +173,7 @@ var apiImpl = {
 		},
 		setBadgeBackgroundColor: function (badgeBGColor, success, error) {
 			if (button) {
-				button.state("window", { "badgeColor" : badgeBGColor });
+				button.badgeColor = badgeBGColor;
 				success();
 			} else {
 				error({message: 'Button does not exist', type: "UNAVAILABLE"});
@@ -183,7 +183,7 @@ var apiImpl = {
 			addListener: function (params, callback, error) {
 				if (button) {
 					button.on(callback);
-					button.state("window", { "url" : '' });
+					button.url = '';
 				} else {
 					error({message: 'Button does not exist', type: "UNAVAILABLE"});
 				}
@@ -514,5 +514,10 @@ exports.main = function(options, callbacks) {
 exports.onUnload = function (reason) {
 	if ((reason === "uninstall") || (reason === "disable")) {
 		ss.storage.prefs = {};	
-	}	
+	}
+
+	if (button) {
+		button.removeListener("click");
+		button.destroy();
+	}
 };
