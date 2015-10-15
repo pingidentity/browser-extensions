@@ -153,7 +153,6 @@ def minification():
 			'firefox/template-app/data/forge/api-firefox-bg.js',
 			'firefox/template-app/data/forge/api-firefox-proxy.js',
 			'firefox/template-app/lib/main.js',
-			'firefox/template-app/lib/toolbarbutton.js',
 		)}},
 
 		{'when': {'platform_is': 'safari', 'is_external': ()}, 'do': {'minify_in_place': (
