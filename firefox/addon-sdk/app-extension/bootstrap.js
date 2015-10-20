@@ -30,7 +30,18 @@ const vc = Cc["@mozilla.org/xpcom/version-comparator;1"].
 const REASON = [ 'unknown', 'startup', 'shutdown', 'enable', 'disable',
                  'install', 'uninstall', 'upgrade', 'downgrade' ];
 
-const bind = Function.call.bind(Function.bind);
+/* The code line "const bind = Function.call.bind(Function.bind);" is 
+ * a standalone function bind that is equivalent to Function#bind
+ * but accepts the function to bind as its first argument and 
+ * the context to bind that function to as its second
+ *
+ * Therefore, to achieve this functionality without Function#bind
+*/
+function bind (fn, ctx) {
+    return function (...args) {
+        fn.apply(ctx, ...args);
+    };
+}
 
 let loader = null;
 let unload = null;
@@ -240,7 +251,7 @@ function startup(data, reasonCode) {
           stopOnError: options.stopOnError,
           verbose: options.verbose,
           parseable: options.parseable,
-          checkMemory: options.check_memory,
+          checkMemory: options.check_memory
         }
       }
     });
