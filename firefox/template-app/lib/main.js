@@ -7,11 +7,21 @@ var pageMod = require("page-mod");
 var data = require("self").data;
 var request = require("request");
 var notif = require("notifications");
+// BE-265: For toolbar button is broken, changing to use latest
+// SDK module of "sdk/ui/button/action" and removing OpenForge 
+// module of "toolbarbutton"
+// Updated files: 
+// 		firefox/template-app/lib/main.js, 
+// 		generate/generate/server_phases.py
+// Removed files: 
+// 		firefox/template-app/lib/toolbarbutton.js
+var buttons = require('sdk/ui/button/action');
 
 var ss = require("simple-storage");
 if (!ss.storage || !ss.storage.prefs) {
 	ss.storage.prefs = {}
 }
+
 var button;
 var workers = [];
 var background;
@@ -125,11 +135,9 @@ var apiImpl = {
 		});
 	},
 	button: {
-		setIcon: function (url, success, error) {
+		setIcon: function (url, success, error) {		
 			if (button) {
-				button.update({
-					icon: url
-				});
+				button.icon = url;
 				success()
 			} else {
 				error({message: 'Button does not exist', type: "UNAVAILABLE"});
@@ -140,10 +148,7 @@ var apiImpl = {
 				if (url && url.indexOf("http://") !== 0 && url.indexOf("https://") !== 0) {
 					url = require("self").data.url('src'+(url.substring(0,1) == '/' ? '' : '/')+url);
 				}
-
-				button.update({
-					url: url
-				});
+				button.url = url;
 				success();
 			} else {
 				error({message: 'Button does not exist', type: "UNAVAILABLE"});
@@ -151,9 +156,7 @@ var apiImpl = {
 		},
 		setTitle: function (title, success, error) {
 			if (button) {
-				button.update({
-					title: title
-				});
+				button.label = title;		
 				success();
 			} else {
 				error({message: 'Button does not exist', type: "UNAVAILABLE"});
@@ -161,19 +164,16 @@ var apiImpl = {
 		},
 		setBadge: function (badgeText, success, error) {
 			if (button) {
-				button.update({
-					badgeText: badgeText
-				});
+				button.badge = badgeText;			
 				success();
 			} else {
 				error({message: 'Button does not exist', type: "UNAVAILABLE"});
 			}
+
 		},
 		setBadgeBackgroundColor: function (badgeBGColor, success, error) {
 			if (button) {
-				button.update({
-					badgeBGColor: badgeBGColor
-				});
+				button.badgeColor = badgeBGColor;
 				success();
 			} else {
 				error({message: 'Button does not exist', type: "UNAVAILABLE"});
@@ -182,8 +182,8 @@ var apiImpl = {
 		onClicked: {
 			addListener: function (params, callback, error) {
 				if (button) {
-					button.addListener(callback);
-					apiImpl.button.setURL('');
+					button.on(callback);
+					button.url = '';
 				} else {
 					error({message: 'Button does not exist', type: "UNAVAILABLE"});
 				}
@@ -364,44 +364,51 @@ var apiImpl = {
 
 // Load the extension
 exports.main = function(options, callbacks) {
-	// Button
-	{% if "button" in plugins and "config" in plugins["button"] %}
-	button = require("toolbarbutton").ToolbarButton({
-		id: config.uuid+"-button"
-		{% if "default_title" in plugins["button"]["config"] %}, title: ${json.dumps(plugins['button']["config"]['default_title'])}{% end %}
-{% python
-def get_ba_icon(ba):
-	if 'firefox' in ba.get('default_icons', {}):
-		return ba['default_icons']['firefox']
-	if 'default_icon' in ba:
-		return ba['default_icon']
-	return False
-%}
-		{% if get_ba_icon(plugins['button']['config']) %}, icon: data.url(${json.dumps(get_ba_icon(plugins['button']['config']))}){% end %}
-		{% if "default_popup" in plugins['button']['config'] %}, url: data.url(${json.dumps(plugins['button']['config']['default_popup'])}){% end %}
-	});
-	button.addListener(function (options, tbb) {
-		if (options.url) {
-			// Create and destroy popups on demand (like Chrome)
-			var panel = require("panel").Panel({
-				contentURL: options.url,
-				{% if "default_width" in plugins["button"]["config"] %} width: parseInt(${json.dumps(plugins['button']["config"]['default_width'])}), {% end %}
-				{% if "default_height" in plugins["button"]["config"] %} height: parseInt(${json.dumps(plugins['button']["config"]['default_height'])}), {% end %}
-				contentScriptFile: data.url("forge/api-firefox-proxy.js"),
-				contentScriptWhen: "start",
-				onMessage: handleNonPrivCall,
-				onHide: function () {
-					removeWorker(this);
-					// Completely remove panel from DOM
-					this.destroy();
-				}
-			});
-			// Keep the panel in the list of workers for messaging
-			addWorker(panel);
-			panel.show(tbb);
-		}
-	}, true);
+	// Button	
+{% if "button" in plugins and "config" in plugins["button"] %}
+	var dataUrl;
+	{% if "default_popup" in plugins['button']['config'] %}
+	dataUrl = data.url(${json.dumps(plugins['button']['config']['default_popup'])});
 	{% end %}
+ 	button = buttons.ActionButton({
+		id: config.uuid + "-button"
+	{% if "default_title" in plugins["button"]["config"] %}
+		, label: ${json.dumps(plugins['button']["config"]['default_title'])}
+	{% end %}
+	{% python
+	def get_ba_icon(ba):
+		if 'firefox' in ba.get('default_icons', {}):
+			return ba['default_icons']['firefox']
+		if 'default_icon' in ba:
+			return ba['default_icon']
+		return False
+	%}
+	{% if get_ba_icon(plugins['button']['config']) %}
+		, icon: data.url(${json.dumps(get_ba_icon(plugins['button']['config']))})
+	{% end %}
+ 		, onClick: function(state) {
+			if (dataUrl) {
+				// Create and destroy popups on demand (like Chrome)
+				var panel = require("panel").Panel({
+					contentURL: dataUrl,
+					{% if "default_width" in plugins["button"]["config"] %} width: parseInt(${json.dumps(plugins['button']["config"]['default_width'])}), {% end %}
+					{% if "default_height" in plugins["button"]["config"] %} height: parseInt(${json.dumps(plugins['button']["config"]['default_height'])}), {% end %}
+					contentScriptFile: data.url("forge/api-firefox-proxy.js"),
+					contentScriptWhen: "start",
+					onMessage: handleNonPrivCall,
+					onHide: function () {
+						removeWorker(this);
+						// Completely remove panel from DOM
+						this.destroy();
+					}
+				});
+				// Keep the panel in the list of workers for messaging
+				addWorker(panel);
+				panel.show({position: button});
+			}
+		}
+ 	});
+{% end %}
 
 	// Background page
 	background = pageWorker.Page({
@@ -507,5 +514,10 @@ def get_ba_icon(ba):
 exports.onUnload = function (reason) {
 	if ((reason === "uninstall") || (reason === "disable")) {
 		ss.storage.prefs = {};	
-	}	
+	}
+
+	if (button) {
+		button.removeListener("click");
+		button.destroy();
+	}
 };
