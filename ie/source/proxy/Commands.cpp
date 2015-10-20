@@ -62,7 +62,11 @@ HRESULT button_addCommand::exec(HWND toolbar, HWND target, FrameServer::Button *
 		// restore the window if it is maximized. Otherwise the resizing (steps below) won't work.
 		// ...and yes...this is the only way i found to make it work when the window
 		// was maximized before it was last closed
-		ShowWindow(ieFrame, SW_RESTORE);
+		
+		//This code cause the issue be-282, that Browser extension does not allow IE browser to stay 
+		//maximized on restart.
+		//ShowWindow(ieFrame, SW_RESTORE);
+		
 		// force ie frame resize so the new toolbar size kicks in
 		GetWindowRect( ieFrame, &rect );
 		SetWindowPos( ieFrame, NULL, rect.left, rect.top, rect.right - rect.left +1,
