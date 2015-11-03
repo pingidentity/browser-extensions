@@ -220,12 +220,27 @@ FrameProxy::FrameProxy(const wstring& uuid, HINSTANCE instance,
 FrameProxy::~FrameProxy() 
 {
     logger->debug(L"FrameProxy::~FrameProxy");
+
+	//fix BE-246
+	//call the unload function of the FrameServer for the current processId when the tab is closed
+	DWORD processId = ::GetCurrentProcessId();
+	//if proxy and server are in the same processes, mean that m_frameServer is not null
+	if (m_frameServer) {
+		m_frameServer->unload(processId, (INT_PTRX)this);
+	}
+	else{
+		UnloadCommand command(processId, (INT_PTRX)this);
+		m_commandChannel->Write(&command, sizeof(command));
+	}
+
     if (m_commandChannel)
     {
         delete m_commandChannel;  // LEAKFIX
         m_commandChannel = NULL;
     }
     // deleting of the m_messageChannel is done in the constructor or MessageHandlerListener()
+
+	
 }
 
 
