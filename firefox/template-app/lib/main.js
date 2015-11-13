@@ -8,8 +8,8 @@ var data = require("self").data;
 var request = require("request");
 var notif = require("notifications");
 // BE-265: For toolbar button is broken, changing to use latest
-// SDK module of "sdk/ui/button/action" and removing OpenForge 
-// module of "toolbarbutton"
+// SDK module of "sdk/ui/button/action" and removing "toolbarbutton"
+// module.
 // Updated files: 
 // 		firefox/template-app/lib/main.js, 
 // 		generate/generate/server_phases.py

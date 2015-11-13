@@ -30,6 +30,15 @@ const vc = Cc["@mozilla.org/xpcom/version-comparator;1"].
 const REASON = [ 'unknown', 'startup', 'shutdown', 'enable', 'disable',
                  'install', 'uninstall', 'upgrade', 'downgrade' ];
 
+/* 
+ * BE-467: Fixed for warning message of "Reference to critical user profile data"
+ * https://developer.mozilla.org/en-US/Add-ons/How_to_convert_an_overlay_extension_to_restartless#Step_4a._Another_way_to_handle_default_preferences
+ * Because we want to keep the preference file in defaults/preferences/, 
+ * the approach below only works as long as our extension is unpacked.
+ */
+const defaultPreferencesLoaderLink = 
+            'resources/f/lib/defaultPreferencesLoader.jsm';
+
 /* The code line "const bind = Function.call.bind(Function.bind);" is 
  * a standalone function bind that is equivalent to Function#bind
  * but accepts the function to bind as its first argument and 
@@ -259,10 +268,11 @@ function startup(data, reasonCode) {
     let module = cuddlefish.Module('sdk/loader/cuddlefish', cuddlefishURI);
     let require = cuddlefish.Require(loader, module);
 
+    loadDefaultPreferences(data);
+
     require('sdk/addon/runner').startup(reason, {
       loader: loader,
-      main: main,
-      prefsURI: rootURI + 'defaults/preferences/prefs.js'
+      main: main
     });
   } catch (error) {
     dump('Bootstrap error: ' +
@@ -358,4 +368,19 @@ function nukeModules() {
   // and keep a reference to this compartment.
   unloadSandbox(cuddlefishSandbox);
   cuddlefishSandbox = null;
+
+  unloadDefaultPreferences();
+}
+
+function loadDefaultPreferences(data) {
+    Cu.import(data.resourceURI.spec + defaultPreferencesLoaderLink);
+
+    defaultPreferencesLoader = new DefaultPreferencesLoader(data.installPath);
+    defaultPreferencesLoader.parseDirectory();
+}
+
+function unloadDefaultPreferences() {
+    defaultPreferencesLoader.clearDefaultPrefs();
+
+    Cu.unload(defaultPreferencesLoaderLink);
 }
