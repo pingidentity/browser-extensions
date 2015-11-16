@@ -37,7 +37,7 @@ const REASON = [ 'unknown', 'startup', 'shutdown', 'enable', 'disable',
  * the approach below only works as long as our extension is unpacked.
  */
 const defaultPreferencesLoaderLink = 
-            'resources/f/lib/defaultPreferencesLoader.jsm';
+            'resources/f/data/forge/module/defaultPreferencesLoader.jsm';
 
 /* The code line "const bind = Function.call.bind(Function.bind);" is 
  * a standalone function bind that is equivalent to Function#bind
@@ -56,6 +56,7 @@ let loader = null;
 let unload = null;
 let cuddlefishSandbox = null;
 let nukeTimer = null;
+let defaultPreferencesLoader = null;
 
 let resourceDomains = [];
 function setResourceSubstitution(domain, uri) {

@@ -42,7 +42,6 @@ def copy_common_files():
 		}}},
 	]
 
-
 def sensible_default_for_toolbar():
 	return [
 		{'do': {'fallback_to_default_toolbar_icon': ()}},
@@ -104,6 +103,13 @@ def post_create_all_js():
 		}}},
 	]
 	
+def copy_def_prefs_loader():
+	return [
+		{'when': {'platform_is': 'firefox'}, 'do': {'copy_files': {
+			'from': 'firefox/template-app/module', 'to': 'firefox/template-app/data/forge/module'
+		}}},
+	]
+
 def remove_assets_forge():
 	return [
 		{'when': {'platform_is': 'chrome'}, 'do': {'remove_files': 'chrome/assets_forge'}},
@@ -123,7 +129,8 @@ def platform_specific_templating(build):
 		
 		{'when': {'platform_is': 'firefox'}, 'do': {'template_files': (
 			'firefox/template-app/package.json',
-			'firefox/template-app/lib/main.js',
+			'firefox/template-app/lib/main.js',	
+			'firefox/template-app/data/forge/module/defaultPreferencesLoader.jsm',		
 			'firefox/template-app/data/forge.html',
 		)}},
 		
@@ -153,7 +160,7 @@ def minification():
 			'firefox/template-app/data/forge/api-firefox-bg.js',
 			'firefox/template-app/data/forge/api-firefox-proxy.js',
 			'firefox/template-app/lib/main.js',
-			'firefox/template-app/lib/defaultPreferencesLoader.jsm',
+			'firefox/template-app/data/forge/module/defaultPreferencesLoader.jsm',			
 		)}},
 
 		{'when': {'platform_is': 'safari', 'is_external': ()}, 'do': {'minify_in_place': (
