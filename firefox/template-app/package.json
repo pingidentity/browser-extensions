@@ -8,5 +8,6 @@
 	"permissions": {
 		"unsafe-content-script": true
 	},
-	"homepage": ${json.dumps(value_of("homepage", ""))}
+	"homepage": ${json.dumps(value_of("homepage", ""))},
+	"unpack": true
 }
