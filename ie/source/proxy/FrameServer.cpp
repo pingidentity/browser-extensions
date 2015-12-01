@@ -101,6 +101,12 @@ void FrameServer::load(HWND toolbar, HWND target,
         m_clientListeners.find(processId) == m_clientListeners.end()) {
         // add IPC channel for proxy if it is in a different process 
         m_clientListeners[processId] = ClientListener(new Channel(L"IeBarMsgPoint", processId), 1);
+		ProxyInfor proxyInfor;
+		proxyInfor.proxy = proxy;
+		m_proxyInfors[processId] = proxyInfor;
+		logger->debug(L"FrameServer::load -> processId -> proxy"
+			L" -> " + boost::lexical_cast<wstring>(processId) +
+			L" -> " + boost::lexical_cast<wstring>(proxy));
         if (m_clientListeners.size() == 1) {
             m_activeProcessId = processId;
             m_activeProxy = proxy;
@@ -165,8 +171,12 @@ void FrameServer::unload(DWORDX processId, INT_PTRX proxy)
         // destory IPC channel between proxy and server if they are in different processes
         ClientListener& entry = m_clientListeners[processId];
         if (--entry.second == 0) {
+			logger->debug(L"FrameServer::unload processId"
+				L" -> " + boost::lexical_cast<wstring>(processId));
             delete entry.first;
-            m_clientListeners.erase(processId);
+            m_clientListeners.erase(processId);			
+			m_proxyInfors.erase(processId);
+
         }
     }
 
@@ -231,13 +241,13 @@ bool FrameServer::WndProcTarget(LRESULT* lresult, UINT msg, WPARAM wparam, LPARA
         // should we use IPC or access client proxy directly 
         if (m_activeProcessId != ::GetCurrentProcessId()) {
             ATL::CComCritSecLock<CComAutoCriticalSection> lock(m_clientLock, true);
-            
-            // send notification to listening thread of process which owns client proxy
-            ClientListeners::iterator i = m_clientListeners.find(m_activeProcessId);
-            if (i != m_clientListeners.end()) {
-                ForwardedMessage msg(m_activeProxy, msg, wparam, lparam);
-                i->second.first->Write(&msg, sizeof(msg), false);
-            }
+			// send notification to listening thread of process which owns client proxy
+			DWORD processId = GetCurrentProcessId();
+			if (processId != 0) {
+				ClientListeners::iterator i = m_clientListeners.find(processId);
+				ForwardedMessage msg(m_proxyInfors[processId].proxy, msg, wparam, lparam);
+				i->second.first->Write(&msg, sizeof(msg), false);
+			}            
         } else {
             ((FrameProxy*)m_activeProxy)->WndProcTarget(lresult, msg, wparam, lparam);
         }
@@ -493,14 +503,14 @@ void FrameServer::OnButtonClick(HWND hwnd, WPARAM wparam, LPARAM lparam)
     
     // notify FrameProxy
     if (m_activeProcessId != ::GetCurrentProcessId()) {
-        ATL::CComCritSecLock<CComAutoCriticalSection> lock(m_clientLock, true);
-        ClientListeners::iterator i = m_clientListeners.find(m_activeProcessId);
-        if (i != m_clientListeners.end()) {
-            button_onClickCommand command(button.uuid.c_str(),
-                                          point,
-                                          m_activeProcessId, m_activeProxy);
-            i->second.first->Write(&command, sizeof(button_onClickCommand), false);
-        }
+		DWORD processId = GetCurrentProcessId();
+		if (processId != 0) {
+			ClientListeners::iterator i = m_clientListeners.find(processId);
+			button_onClickCommand command(button.uuid.c_str(),
+				point,
+				processId, m_proxyInfors[processId].proxy);
+			i->second.first->Write(&command, sizeof(button_onClickCommand), false);
+		}		
     }
     else {
         // We are in the same process as the proxy, execute command directly.
@@ -510,3 +520,41 @@ void FrameServer::OnButtonClick(HWND hwnd, WPARAM wparam, LPARAM lparam)
     }
 }
 
+DWORDX FrameServer::GetCurrentProcessId()
+{
+	logger->debug(L"FrameServer::GetCurrentProcessId -> m_activeProcessId"
+		L" -> " + boost::lexical_cast<wstring>(m_activeProcessId));
+	//get curtent tab
+	HWND  currentIE = ::FindWindowEx(NULL, NULL, L"IEFrame", NULL);
+	logger->debug(L"FrameServer::GetCurrentProcessId -> currentIE"
+		L" -> " + boost::lexical_cast<wstring>(currentIE));
+
+	DWORD processId = 0;
+	::GetWindowThreadProcessId(currentIE, &processId);
+	logger->debug(L"FrameServer::GetCurrentProcessId -> currentIE -> processId"
+		L" -> " + boost::lexical_cast<wstring>(processId));
+
+	HWND  frameTab = ::FindWindowEx(currentIE, NULL, L"Frame Tab", NULL);
+
+	while (frameTab) {
+		logger->debug(L"FrameServer::GetCurrentProcessId -> frameTab"
+			L" -> " + boost::lexical_cast<wstring>(frameTab));
+		HWND  tabWindowClass = ::FindWindowEx(frameTab, NULL, L"TabWindowClass", NULL);
+		if (tabWindowClass) {
+			logger->debug(L"FrameServer::GetCurrentProcessId -> tabWindowClass"
+				L" -> " + boost::lexical_cast<wstring>(tabWindowClass));
+			::GetWindowThreadProcessId(tabWindowClass, &processId);
+			logger->debug(L"FrameServer::GetCurrentProcessId -> tabWindowClass -> processId"
+				L" -> " + boost::lexical_cast<wstring>(processId));
+
+			ATL::CComCritSecLock<CComAutoCriticalSection> lock(m_clientLock, true);
+			ClientListeners::iterator i = m_clientListeners.find(processId);
+			if (i != m_clientListeners.end() && m_proxyInfors.find(processId) != m_proxyInfors.end()) {
+				return processId;
+			}
+		}
+
+		frameTab = ::FindWindowEx(currentIE, frameTab, L"Frame Tab", NULL);
+	}
+	return 0;
+}
