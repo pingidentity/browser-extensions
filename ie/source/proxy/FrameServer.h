@@ -34,7 +34,7 @@ public:
     bool WndProcToolbar(LRESULT* lresult, UINT msg, WPARAM wparam, LPARAM lparam);
 
     void OnButtonClick(HWND hwnd, WPARAM wparam, LPARAM lparam);
-
+	DWORDX GetCurrentProcessId();
 private:
     static LONG refCount;
     static ATL::CComAutoCriticalSection lock;
@@ -72,6 +72,14 @@ private:
     typedef std::pair<Channel*, LONG> ClientListener; 
     typedef stdext::hash_map<DWORDX, ClientListener> ClientListeners;
     ClientListeners m_clientListeners;
+
+	struct ProxyInfor {
+		INT_PTRX proxy;		
+		ProxyInfor() : proxy(0) {}
+	};
+
+	typedef stdext::hash_map<DWORDX, ProxyInfor> ProxyInfors;
+	ProxyInfors m_proxyInfors;
 
 	typedef stdext::hash_map<wstring, DWORD> ToolbarTabCount;
 	ToolbarTabCount m_toolbarTabCount;
