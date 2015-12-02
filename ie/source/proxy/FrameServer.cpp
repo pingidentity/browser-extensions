@@ -97,21 +97,29 @@ void FrameServer::load(HWND toolbar, HWND target,
 
     ATL::CComCritSecLock<CComAutoCriticalSection> lock(m_clientLock, true);
 
-    if (processId != ::GetCurrentProcessId() && 
-        m_clientListeners.find(processId) == m_clientListeners.end()) {
-        // add IPC channel for proxy if it is in a different process 
-        m_clientListeners[processId] = ClientListener(new Channel(L"IeBarMsgPoint", processId), 1);
-		ProxyInfor proxyInfor;
-		proxyInfor.proxy = proxy;
-		m_proxyInfors[processId] = proxyInfor;
-		logger->debug(L"FrameServer::load -> processId -> proxy"
-			L" -> " + boost::lexical_cast<wstring>(processId) +
-			L" -> " + boost::lexical_cast<wstring>(proxy));
-        if (m_clientListeners.size() == 1) {
-            m_activeProcessId = processId;
-            m_activeProxy = proxy;
-			m_activeToolbar = toolbar;
-        }
+    if (processId != ::GetCurrentProcessId()) { 
+		//get the new open tab that is the tab of this proxy
+		HWND newFrameTab = GetNewFrameTab();
+		if (newFrameTab != 0) {
+			logger->debug(L"FrameServer::load"
+				L" -> " + boost::lexical_cast<wstring>(processId)+
+				L" -> " + boost::lexical_cast<wstring>(proxy));
+
+			//store frame tab for this proxy
+			m_frameTabs[proxy] = newFrameTab;
+			
+			//add IPC channel for proxy if it is in a different process
+			ProxyInfor proxyInfor;
+			proxyInfor.processId = processId;
+			proxyInfor.proxy = proxy;
+			proxyInfor.toolbar = toolbar;
+			proxyInfor.clientListener = ClientListener(new Channel(L"IeBarMsgPoint", processId), 1);
+			m_proxyInfors[newFrameTab] = proxyInfor;
+
+			m_activeProcessId = processId; 
+			m_activeProxy = proxy;
+			m_activeToolbar = toolbar;			
+		}
     }
 
 	m_tabCount++;
@@ -167,17 +175,20 @@ void FrameServer::unload(DWORDX processId, INT_PTRX proxy)
 
     ATL::CComCritSecLock<CComAutoCriticalSection> lock(m_clientLock, true);
     
-    if (processId != ::GetCurrentProcessId()) {
-        // destory IPC channel between proxy and server if they are in different processes
-        ClientListener& entry = m_clientListeners[processId];
-        if (--entry.second == 0) {
-			logger->debug(L"FrameServer::unload processId"
-				L" -> " + boost::lexical_cast<wstring>(processId));
-            delete entry.first;
-            m_clientListeners.erase(processId);			
-			m_proxyInfors.erase(processId);
-
-        }
+	if (processId != ::GetCurrentProcessId()) {
+		// destory IPC channel between proxy and server if they are in different processes
+		HWND frameTab = m_frameTabs[proxy];
+		if (frameTab != 0 && m_proxyInfors.find(frameTab) != m_proxyInfors.end()) {
+			ClientListener& entry = m_proxyInfors[frameTab].clientListener;
+			if (--entry.second == 0 && entry.first != NULL) {
+				logger->debug(L"FrameServer::unload"
+					L" -> " + boost::lexical_cast<wstring>(processId) +
+					L" -> " + boost::lexical_cast<wstring>(proxy));
+				delete entry.first;
+				m_proxyInfors.erase(frameTab);
+				m_frameTabs.erase(proxy);
+			}
+		}        
     }
 
     // clear all the things when tabCount hits zero
@@ -240,14 +251,14 @@ bool FrameServer::WndProcTarget(LRESULT* lresult, UINT msg, WPARAM wparam, LPARA
     if (msg == WM_COMMAND) {
         // should we use IPC or access client proxy directly 
         if (m_activeProcessId != ::GetCurrentProcessId()) {
-            ATL::CComCritSecLock<CComAutoCriticalSection> lock(m_clientLock, true);
-			// send notification to listening thread of process which owns client proxy
-			DWORD processId = GetCurrentProcessId();
-			if (processId != 0) {
-				ClientListeners::iterator i = m_clientListeners.find(processId);
-				ForwardedMessage msg(m_proxyInfors[processId].proxy, msg, wparam, lparam);
-				i->second.first->Write(&msg, sizeof(msg), false);
-			}            
+            ATL::CComCritSecLock<CComAutoCriticalSection> lock(m_clientLock, true);			
+			//get the active tab
+			HWND currentFrameTab = GetCurrentFrameTab();
+			if (currentFrameTab != 0 && m_proxyInfors.find(currentFrameTab) != m_proxyInfors.end()) {
+				// send notification to listening thread of process which owns client proxy
+				ForwardedMessage msg(m_proxyInfors[currentFrameTab].proxy, msg, wparam, lparam);
+				m_proxyInfors[currentFrameTab].clientListener.first->Write(&msg, sizeof(msg), false);
+			}			
         } else {
             ((FrameProxy*)m_activeProxy)->WndProcTarget(lresult, msg, wparam, lparam);
         }
@@ -467,91 +478,102 @@ void FrameServer::OnButtonClick(HWND hwnd, WPARAM wparam, LPARAM lparam)
                   L" -> " + boost::lexical_cast<wstring>(wparam) +
                   L" -> " + boost::lexical_cast<wstring>(lparam));
 
-    // the button, do we know it?
-    Button button;
-    Buttons::const_iterator i;
-    for (i = m_buttons.begin(); i != m_buttons.end(); i++) {
-        button = i->second;
-        if (button.toolbar == m_activeToolbar && button.idCommand == wparam) break;
-        else button.idCommand = 0;
-    }
-    if (button.idCommand == 0) { 
-        logger->warn(L"FrameServer::OnButtonClick no button found for idCommand"
-                     L" -> " + boost::lexical_cast<wstring>(wparam));
-        return;
-    }
+	HWND activeToolbar = m_activeToolbar;
+	//get the active tab
+	HWND currentFrameTab = GetCurrentFrameTab();
+	if (currentFrameTab != 0 && m_proxyInfors.find(currentFrameTab) != m_proxyInfors.end()) {
+		activeToolbar = m_proxyInfors[currentFrameTab].toolbar;
+	}
 
-    // get button rect
-    RECT rect;
-    memset(&rect, 0, sizeof(RECT));
-    if (!WindowsMessage::tb_getrect(button.toolbar, button.idCommand, &rect)) {
-        logger->error(L"FrameServer::OnButtonClick"
-                      L" -> " + boost::lexical_cast<wstring>(button.idCommand) +
-                      L" -> tb_getrect failed");
-        return;
-    }
-    POINT point = { rect.left, rect.bottom };
-    ::ClientToScreen(button.toolbar, &point);
-    logger->debug(L"FrameServer::OnButtonClick"
-                  L" -> " + boost::lexical_cast<wstring>(button.idCommand) +
-                  L" -> " + boost::lexical_cast<wstring>(rect.left) +
-                  L" -> " + boost::lexical_cast<wstring>(rect.top) +
-                  L" -> " + boost::lexical_cast<wstring>(rect.right) +
-                  L" -> " + boost::lexical_cast<wstring>(rect.bottom) +
-                  L" -> " + boost::lexical_cast<wstring>(point.x) +
-                  L" -> " + boost::lexical_cast<wstring>(point.y));
-    
-    // notify FrameProxy
-    if (m_activeProcessId != ::GetCurrentProcessId()) {
-		DWORD processId = GetCurrentProcessId();
-		if (processId != 0) {
-			ClientListeners::iterator i = m_clientListeners.find(processId);
+	// the button, do we know it?
+	Button button;
+	Buttons::const_iterator i;
+	for (i = m_buttons.begin(); i != m_buttons.end(); i++) {
+		button = i->second;
+		if (button.toolbar == activeToolbar && button.idCommand == wparam) break;
+		else button.idCommand = 0;
+	}
+	if (button.idCommand == 0) {
+		logger->warn(L"FrameServer::OnButtonClick no button found for idCommand"
+			L" -> " + boost::lexical_cast<wstring>(wparam));
+		return;
+	}
+
+	// get button rect
+	RECT rect;
+	memset(&rect, 0, sizeof(RECT));
+	if (!WindowsMessage::tb_getrect(button.toolbar, button.idCommand, &rect)) {
+		logger->error(L"FrameServer::OnButtonClick"
+			L" -> " + boost::lexical_cast<wstring>(button.idCommand) +
+			L" -> tb_getrect failed");
+		return;
+	}
+	POINT point = { rect.left, rect.bottom };
+	::ClientToScreen(button.toolbar, &point);
+	logger->debug(L"FrameServer::OnButtonClick"
+		L" -> " + boost::lexical_cast<wstring>(button.idCommand) +
+		L" -> " + boost::lexical_cast<wstring>(rect.left) +
+		L" -> " + boost::lexical_cast<wstring>(rect.top) +
+		L" -> " + boost::lexical_cast<wstring>(rect.right) +
+		L" -> " + boost::lexical_cast<wstring>(rect.bottom) +
+		L" -> " + boost::lexical_cast<wstring>(point.x) +
+		L" -> " + boost::lexical_cast<wstring>(point.y));
+
+	// notify FrameProxy
+	if (m_activeProcessId != ::GetCurrentProcessId()) {
+		if (currentFrameTab != 0 && m_proxyInfors.find(currentFrameTab) != m_proxyInfors.end()) {
 			button_onClickCommand command(button.uuid.c_str(),
 				point,
-				processId, m_proxyInfors[processId].proxy);
-			i->second.first->Write(&command, sizeof(button_onClickCommand), false);
-		}		
-    }
-    else {
-        // We are in the same process as the proxy, execute command directly.
-        button_onClickCommand command(button.uuid.c_str(), point,
-                                      m_activeProcessId, m_activeProxy);
-        command.exec();
-    }
+				m_proxyInfors[currentFrameTab].processId, m_proxyInfors[currentFrameTab].proxy);
+			m_proxyInfors[currentFrameTab].clientListener.first->Write(&command, sizeof(button_onClickCommand), false);
+		}
+	}
+	else {
+		// We are in the same process as the proxy, execute command directly.
+		button_onClickCommand command(button.uuid.c_str(), point,
+			m_activeProcessId, m_activeProxy);
+		command.exec();
+	}	
 }
 
-DWORDX FrameServer::GetCurrentProcessId()
+/**
+* FrameServer::GetCurrentFrameTab
+* Get HWND of the active tab
+*/
+HWND FrameServer::GetCurrentFrameTab()
 {
-	logger->debug(L"FrameServer::GetCurrentProcessId -> m_activeProcessId"
-		L" -> " + boost::lexical_cast<wstring>(m_activeProcessId));
-	//get curtent tab
 	HWND  currentIE = ::FindWindowEx(NULL, NULL, L"IEFrame", NULL);
-	logger->debug(L"FrameServer::GetCurrentProcessId -> currentIE"
+	logger->debug(L"FrameServer::GetCurrentFrameTab -> currentIE"
 		L" -> " + boost::lexical_cast<wstring>(currentIE));
 
-	DWORD processId = 0;
-	::GetWindowThreadProcessId(currentIE, &processId);
-	logger->debug(L"FrameServer::GetCurrentProcessId -> currentIE -> processId"
-		L" -> " + boost::lexical_cast<wstring>(processId));
+	HWND  frameTab = ::FindWindowEx(currentIE, NULL, L"Frame Tab", NULL);
+
+	if (frameTab) {
+		logger->debug(L"FrameServer::GetCurrentFrameTab -> frameTab"
+			L" -> " + boost::lexical_cast<wstring>(frameTab));
+		return frameTab;		
+	}
+	return 0;
+}
+
+/**
+* FrameServer::GetNewFrameTab
+* Get HWND of the new open tab
+*/
+HWND FrameServer::GetNewFrameTab()
+{	
+	HWND  currentIE = ::FindWindowEx(NULL, NULL, L"IEFrame", NULL);
+	logger->debug(L"FrameServer::GetNewFrameTab -> currentIE"
+		L" -> " + boost::lexical_cast<wstring>(currentIE));
 
 	HWND  frameTab = ::FindWindowEx(currentIE, NULL, L"Frame Tab", NULL);
 
 	while (frameTab) {
-		logger->debug(L"FrameServer::GetCurrentProcessId -> frameTab"
-			L" -> " + boost::lexical_cast<wstring>(frameTab));
-		HWND  tabWindowClass = ::FindWindowEx(frameTab, NULL, L"TabWindowClass", NULL);
-		if (tabWindowClass) {
-			logger->debug(L"FrameServer::GetCurrentProcessId -> tabWindowClass"
-				L" -> " + boost::lexical_cast<wstring>(tabWindowClass));
-			::GetWindowThreadProcessId(tabWindowClass, &processId);
-			logger->debug(L"FrameServer::GetCurrentProcessId -> tabWindowClass -> processId"
-				L" -> " + boost::lexical_cast<wstring>(processId));
-
-			ATL::CComCritSecLock<CComAutoCriticalSection> lock(m_clientLock, true);
-			ClientListeners::iterator i = m_clientListeners.find(processId);
-			if (i != m_clientListeners.end() && m_proxyInfors.find(processId) != m_proxyInfors.end()) {
-				return processId;
-			}
+		//check if the frame tab is new 
+		if (m_proxyInfors.find(frameTab) == m_proxyInfors.end()) {
+			logger->debug(L"FrameServer::GetNewFrameTab -> frameTab"
+				L" -> " + boost::lexical_cast<wstring>(frameTab));
+			return frameTab;
 		}
 
 		frameTab = ::FindWindowEx(currentIE, frameTab, L"Frame Tab", NULL);
