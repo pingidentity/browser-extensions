@@ -34,7 +34,9 @@ public:
     bool WndProcToolbar(LRESULT* lresult, UINT msg, WPARAM wparam, LPARAM lparam);
 
     void OnButtonClick(HWND hwnd, WPARAM wparam, LPARAM lparam);
-
+	
+	HWND GetCurrentFrameTab();
+	HWND GetNewFrameTab();
 private:
     static LONG refCount;
     static ATL::CComAutoCriticalSection lock;
@@ -65,13 +67,29 @@ public:
 private:
     Channel  *m_channel;
     DWORD     m_tabCount;
-    DWORDX    m_activeProcessId; 
+	DWORDX    m_activeProcessId; 
     INT_PTRX  m_activeProxy;
 	HWND      m_activeToolbar;
 
     typedef std::pair<Channel*, LONG> ClientListener; 
-    typedef stdext::hash_map<DWORDX, ClientListener> ClientListeners;
-    ClientListeners m_clientListeners;
+    
+	struct ProxyInfor {
+		DWORDX		processId;
+		INT_PTRX	proxy;		
+		HWND		toolbar;
+		ClientListener clientListener;
+		ProxyInfor() :	processId(0),
+						proxy(0),
+						toolbar(0) {}
+	};
+
+	typedef stdext::hash_map<HWND, ProxyInfor> ProxyInfors;
+	//map from frame tab to proxy information
+	ProxyInfors m_proxyInfors;
+
+	typedef stdext::hash_map<INT_PTRX, HWND> FrameTabs;
+	//map from proxy to frame tab
+	FrameTabs m_frameTabs;
 
 	typedef stdext::hash_map<wstring, DWORD> ToolbarTabCount;
 	ToolbarTabCount m_toolbarTabCount;
