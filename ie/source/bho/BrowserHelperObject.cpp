@@ -850,6 +850,12 @@ void __stdcall CBrowserHelperObject::OnWindowStateChanged(DWORD flags, DWORD mas
         break;
     }
 
+	//if this is a blank page, we don't make it to be the active tab 
+	wstring location(url);
+	if (location.find(L"about:blank") == 0) {
+		focused = false;
+	}
+	
     m_tabInfo.id     = m_instanceId;
     m_tabInfo.active = focused;
     m_tabInfo.url    = url;
