@@ -312,11 +312,8 @@ var apiImpl = {
 				content: params.data,
 				headers: params.headers
 			});
-			if (params.type == 'POST') {
-				req.post();
-			} else {
-				req.get();
-			}
+
+			req[params.type ? params.type.toLowerCase() : 'get']();
 		}
 	},
 	prefs: {

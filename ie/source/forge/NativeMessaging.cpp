@@ -92,6 +92,12 @@ STDMETHODIMP CNativeMessaging::tabs_set(BSTR uuid,
            }
         }
     }
+	//if this tab isn't focused, set the active tab to no one
+	//to make sure BE doesn't decide this tab as the active tab anymore
+	//until this tab is selected again
+	else if (m_activeTab.id == instanceId) {
+		m_activeTab.id = -1;		
+	}
 
     return S_OK;
 }
