@@ -1,13 +1,20 @@
 {
-	"name": "f",
-	"version": ${json.dumps(value_of("version", ""))},
-	"fullName": ${json.dumps(value_of("name", ""))},
-	"id": ${json.dumps(value_of("uuid", ""))},
-	"description": ${json.dumps(value_of("description", ""))},
-	"author": ${json.dumps(value_of("author", ""))},
-	"permissions": {
-		"unsafe-content-script": true
-	},
-	"homepage": ${json.dumps(value_of("homepage", ""))},
-	"unpack": true
+  "id": ${json.dumps(value_of("uuid", "")+"@jetpack")},
+  "version": ${json.dumps(value_of("version", ""))},
+  "title": ${json.dumps(value_of("name", ""))},
+  "name": "f",
+  "description": ${json.dumps(value_of("description", ""))},
+  "author": ${json.dumps(value_of("author", ""))},
+  "main": "lib/main.js",
+  "permissions": {
+    "unsafe-content-script": true
+  },
+  "engines": {
+    "firefox": ">=38.0a1"
+  },
+  "license": "MPL-2.0",
+  "homepage": ${json.dumps(value_of("homepage", ""))},
+  "unpack": true,
+  "updateURL": "https://s3-us-west-2.amazonaws.com/ping-browser-extension/aebjagkkobajpjpacabnojeplklmijjh/firefox-update.rdf",
+  "updateLink": "https://s3-us-west-2.amazonaws.com/ping-browser-extension/aebjagkkobajpjpacabnojeplklmijjh/firefox/PingOne-Extension.xpi"
 }

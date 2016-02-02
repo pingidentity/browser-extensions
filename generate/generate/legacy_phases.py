@@ -83,9 +83,19 @@ def customer_phase():
 			'from': '${plugins["icons"]["config"]["firefox"]["32"]}',
 			'to': icon("firefox", 'icon.png')
 		}}},
+        # copy icon.png for package with jpm
+        {'when': {'platform_is': 'firefox', 'icon_available': ('firefox', '32')}, 'do': {'copy_files': {
+			'from': '${plugins["icons"]["config"]["firefox"]["32"]}',
+			'to': icon("firefox", 'resources/f/icon.png')
+		}}},
 		{'when': {'platform_is': 'firefox', 'icon_available': ('firefox', '64')}, 'do': {'copy_files': {
 			'from': '${plugins["icons"]["config"]["firefox"]["64"]}',
 			'to': icon("firefox", 'icon64.png')
+		}}},
+        # copy icon64.png for package with jpm
+        {'when': {'platform_is': 'firefox', 'icon_available': ('firefox', '64')}, 'do': {'copy_files': {
+			'from': '${plugins["icons"]["config"]["firefox"]["64"]}',
+			'to': icon("firefox", 'resources/f/icon64.png')
 		}}},
 
 	]
