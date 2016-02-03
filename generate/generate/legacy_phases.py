@@ -41,6 +41,12 @@ def platform_specific_templating(build):
 	except Exception:
 		pass
 
+	#updateURL = ""
+	#try:
+	#	updateURL = build.config['plugins']['update_url']['config']['firefox']
+	#except Exception:
+	#	pass
+
 	return [
 		{'when': {'platform_is': 'chrome', 'config_property_exists': 'core.chrome.content_security_policy'}, 'do': {'set_in_json': {
 			"filename": 'chrome/manifest.json',
@@ -52,6 +58,11 @@ def platform_specific_templating(build):
 			"key": "web_accessible_resources",
 			"value": web_accessible_resources
 		}}},
+  #      {'when': {'platform_is': 'firefox', 'config_property_exists': 'plugins.update_url.config.firefox'}, 'do': {'set_in_json': {
+		#	"filename": 'firefox/template-app/package.json',
+		#	"key": "updateURL",
+		#	"value": updateURL
+		#}}},
 	]
 
 def customer_phase():
