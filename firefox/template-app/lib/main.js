@@ -2,17 +2,17 @@
 var config = {uuid: "${uuid}"};
 
 // Jetpack libraries
-var pageWorker = require("page-worker");
-var pageMod = require("page-mod");
-var data = require("self").data;
-var request = require("request");
-var notif = require("notifications");
+var pageWorker = require("sdk/page-worker");
+var pageMod = require("sdk/page-mod");
+var data = require("sdk/self").data;
+var request = require("sdk/request");
+var notif = require("sdk/notifications");
 // BE-265: For toolbar button is broken, changing to use latest
 // SDK module of "sdk/ui/button/action" and removing "toolbarbutton"
 // module.
 var buttons = require('sdk/ui/button/action');
 
-var ss = require("simple-storage");
+var ss = require("sdk/simple-storage");
 if (!ss.storage || !ss.storage.prefs) {
 	ss.storage.prefs = {}
 }
@@ -120,7 +120,7 @@ var apiImpl = {
 		}
 		background.postMessage(broadcast);
 		workers.forEach(function (worker) {
-			if (params.event !== 'toFocussed' || worker.tab === require("tabs").activeTab) {
+			if (params.event !== 'toFocussed' || worker.tab === require("sdk/tabs").activeTab) {
 				try {
 					worker.postMessage(broadcast);
 				} catch (e) {
@@ -141,7 +141,7 @@ var apiImpl = {
 		setURL: function (url, success, error) {
 			if (button) {
 				if (url && url.indexOf("http://") !== 0 && url.indexOf("https://") !== 0) {
-					url = require("self").data.url('src'+(url.substring(0,1) == '/' ? '' : '/')+url);
+					url = require("sdk/self").data.url('src'+(url.substring(0,1) == '/' ? '' : '/')+url);
 				}
 				button.url = url;
 				success();
@@ -228,7 +228,7 @@ var apiImpl = {
 	},
 	notification: {
 		create: function (params, success, error) {
-			require("notifications").notify({
+			require("sdk/notifications").notify({
 				title: params.title,
 				text: params.text
 			});
@@ -237,7 +237,7 @@ var apiImpl = {
 	},
 	tabs: {
 		open: function(params, success, error) {
-			require('tabs').open({
+			require('sdk/tabs').open({
 				url: params.url,
 				inBackground: params.keepFocus,
 				onOpen: function () {
@@ -284,7 +284,7 @@ var apiImpl = {
 		ajax: function (params, success, error) {
 		
 			var complete = false;
-			var timer = require('timers').setTimeout(function () {
+			var timer = require('sdk/timers').setTimeout(function () {
 				if (complete) return;
 				complete = true;
 				error && error({
@@ -296,7 +296,7 @@ var apiImpl = {
 			var req = request.Request({
 				url: params.url,
 				onComplete: function (res) {
-					require('timers').clearTimeout(timer);
+					require('sdk/timers').clearTimeout(timer);
 					if (complete) return;
 					complete = true;
 				
@@ -381,7 +381,7 @@ exports.main = function(options, callbacks) {
  		, onClick: function(state) {
 			if (dataUrl) {
 				// Create and destroy popups on demand (like Chrome)
-				var panel = require("panel").Panel({
+				var panel = require("sdk/panel").Panel({
 					contentURL: dataUrl,
 					{% if "default_width" in plugins["button"]["config"] %} width: parseInt(${json.dumps(plugins['button']["config"]['default_width'])}), {% end %}
 					{% if "default_height" in plugins["button"]["config"] %} height: parseInt(${json.dumps(plugins['button']["config"]['default_height'])}), {% end %}

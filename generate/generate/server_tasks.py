@@ -89,23 +89,15 @@ def preprocess_config(build):
 def need_https_access(build):
 	'If any activation has a HTTPS prefix, set the "activate_on_https" config flag'
 	def pattern_needs_https(pat):
-		return (
-			pat == "<all_urls>" or
-			pat.startswith("*") or
-			pat.startswith("https")
-		)
+		return (pat == "<all_urls>" or pat.startswith("*") or pat.startswith("https"))
 	def activation_needs_https(act):
 		return any(pattern_needs_https(pat) for pat in act.get("patterns", []))
 	
-	build.config["activate_on_https"] = any(
-		pattern_needs_https(pat) for pat in build.config["plugins"]
+	build.config["activate_on_https"] = any(pattern_needs_https(pat) for pat in build.config["plugins"]
 			.get("request", {})
 			.get("config", {})
-			.get("permissions", [])
-	) or any(
-		activation_needs_https(act) for act in build.config["plugins"] 
-			.get("activations", {}).get("config", {}).get("activations", [])
-	)
+			.get("permissions", [])) or any(activation_needs_https(act) for act in build.config["plugins"] 
+			.get("activations", {}).get("config", {}).get("activations", []))
 
 @task
 def minify_in_place(build, *files):
@@ -124,7 +116,7 @@ def addon_source(build, *directories):
 @task
 def user_source(build, directory):
 	from_to = (build.usercode, directory)
-	build.log.debug('copying source directory "%s" to "%s"' % from_to)
+	build.log.info('copying source directory "%s" to "%s"' % from_to)
 	shutil.copytree(*from_to)
 
 @task
@@ -170,8 +162,16 @@ def extract_files(build, **kw):
 	zipf.close()
 
 @task
+def copy_package_file(build, **kw):
+    if 'from' not in kw or 'to' not in kw:
+        raise ConfigurationError('extract_files requires "from" and "to" keyword arguments')
+    build.log.info('Copying %s to %s' % (utils.render_string(build.config,kw['from']), utils.render_string(build.config, kw['to'])))
+    shutil.copy(utils.render_string(build.config, kw['from']), utils.render_string(build.config, kw['to']))
+
+
+@task
 def fallback_to_default_toolbar_icon(build):
-	if "button" not in build.config["plugins"] or "config" not in  build.config["plugins"]["button"] or "default_icon" in build.config["plugins"]["button"]["config"]:
+	if "button" not in build.config["plugins"] or "config" not in build.config["plugins"]["button"] or "default_icon" in build.config["plugins"]["button"]["config"]:
 		# don't need to worry about toolbar icons
 		return
 	# no default icon given in browser_action section
@@ -195,7 +195,7 @@ def template_files(build, *files):
 			loader = TemplateLoader(path.dirname(_file))
 			tmpl = loader.load(path.basename(_file), cls=NewTextTemplate)
 			stream = tmpl.generate(**build.config)
-			tmp_file = _file+'-tmp'
+			tmp_file = _file + '-tmp'
 			with open(tmp_file, 'w') as out_file:
 				out_file.write(stream.render('text'))
 			from_to = (tmp_file, _file)
@@ -224,7 +224,7 @@ def move_output(build, *output_dirs):
 			"development" in output_dirs and \
 			"firefox" in build.enabled_platforms:
 		from_ = path.join("development", "firefox")
-		to = path.join(from_, build.config["uuid"]+"@jetpack")
+		to = path.join(from_, build.config["uuid"] + "@jetpack")
 		build.log.debug("as test build, moving {0} to {1}".format(from_, to))
 		shutil.move(from_, to)
 		_platform_dir_map["firefox"] = to
@@ -316,7 +316,7 @@ def _download_and_extract_plugin(build, name, hash):
 	count = 0
 	while count < 5:
 		try:
-			urllib.urlretrieve(build.config['plugin_url_prefix']+hash, 'plugins/'+hash)
+			urllib.urlretrieve(build.config['plugin_url_prefix'] + hash, 'plugins/' + hash)
 			count = 99
 		except Exception as e:
 			# Retry a few times after a short sleep
@@ -325,10 +325,10 @@ def _download_and_extract_plugin(build, name, hash):
 			if count == 5:
 				raise e
 	
-	zipf = zipfile.ZipFile('plugins/'+hash)
+	zipf = zipfile.ZipFile('plugins/' + hash)
 	zipf.extractall(os.path.join('plugins', name))
 	zipf.close()
-	os.remove('plugins/'+hash)
+	os.remove('plugins/' + hash)
 
 @task
 def download_and_extract_plugins(build):

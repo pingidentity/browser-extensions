@@ -265,7 +265,7 @@ def _rename_or_copy_files(build, frm, to, rename=True, ignore_patterns=None):
 		ignore_func = None
 
 	if rename:
-		build.log.debug('renaming {from_} to {to}'.format(**locals()))
+		build.log.info('renaming {from_} to {to}'.format(**locals()))
 		shutil.move(from_, to)
 	else:
 		if '*' in to:
@@ -277,7 +277,7 @@ def _rename_or_copy_files(build, frm, to, rename=True, ignore_patterns=None):
 			tos = [to]
 		
 		for found_to in tos:
-			build.log.debug('copying {from_} to {found_to}'.format(**locals()))
+			build.log.info('copying {from_} to {found_to}'.format(**locals()))
 			if path.isdir(from_):
 				shutil.copytree(from_, found_to, ignore=ignore_func)
 			else:

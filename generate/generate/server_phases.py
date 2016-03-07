@@ -188,6 +188,10 @@ def platform_specific_build():
 			'from': 'firefox/template-app/f.xpi',
 			'to': 'firefox/template-app/output'
 		}}},
+        {'when': {'platform_is': 'firefox'}, 'do': {'copy_package_file': {
+			'from': 'firefox/template-app/package.json',
+			'to': 'firefox/template-app/output/resources/f/package.json'
+		}}},
 		{'when': {'platform_is': 'ie'}, 'do': {'remove_files': (
 			'ie/build/Win32/Debug',
 			'ie/build/x64/Debug',
