@@ -238,6 +238,20 @@ var apiImpl = {
 				}
 			}
 		},
+		getTab: function (params, success, error) {
+			var currentWindow = safari.application.activeBrowserWindow;
+
+			for (var i = 0; i < currentWindow.tabs.length; i++)
+			{
+				if (currentWindow.tabs[i] === currentWindow.activeTab)
+				{
+					var tabId = i + 1; // tabId cannot be 0
+					success({id: tabId, url: currentWindow.activeTab.url});
+					break;
+				}
+			}
+
+		},
 		open: function (params, success, error) {
 			if (params.keepFocus) {
 				var currentTab = safari.application.activeBrowserWindow.activeTab;
