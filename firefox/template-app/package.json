@@ -7,7 +7,8 @@
   "author": ${json.dumps(value_of("author", ""))},
   "main": "lib/main.js",
   "permissions": {
-    "unsafe-content-script": true
+    "unsafe-content-script": true,
+    "multiprocess": true
   },
   "engines": {
     "firefox": ">=38.0a1"
