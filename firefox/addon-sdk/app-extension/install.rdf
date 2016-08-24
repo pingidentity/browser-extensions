@@ -11,6 +11,7 @@
     <em:type>2</em:type>
     <em:bootstrap>true</em:bootstrap>
     <em:unpack>false</em:unpack>
+    <em:multiprocessCompatible>true</em:multiprocessCompatible>
 
     <!-- Firefox -->
     <em:targetApplication>
@@ -18,7 +19,6 @@
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
         <em:minVersion>36.0</em:minVersion>
         <em:maxVersion>41.0</em:maxVersion>
-        <em:multiprocessCompatible>true</em:multiprocessCompatible>
       </Description>
     </em:targetApplication>
 
