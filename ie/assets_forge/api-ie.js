@@ -34,9 +34,10 @@ function fallbackLogger(level) {
 }
 window.console = (window.console ? window.console : {});
 window.console.log   = (window.console.log ? window.console.log : fallbackLogger("log"));
-window.console.error = (window.console.error ? window.console.error : fallbackLogger("error"));
 window.console.debug = (window.console.debug ? window.console.debug : fallbackLogger("debug"));
+window.console.info = (window.console.info ? window.console.info : fallbackLogger("info"));
 window.console.warn = (window.console.warn ? window.console.warn : fallbackLogger("warn"));
+window.console.error = (window.console.error ? window.console.error : fallbackLogger("error"));
 
 /**
  * Identity
