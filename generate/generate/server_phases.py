@@ -53,6 +53,7 @@ def pre_create_all_js():
 	return [
 		{'when': {'platform_is': 'ie'}, 'do': {'add_to_all_js': 'common-v2/json2.js'}},
 		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': current_jQuery}},
+		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-ui-1.10.4.custom.js'}},
 		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-noConflict.js'}},
 		{'do': {'add_to_all_js': 'common-v2/api-prefix.js'}},
 		{'do': {'add_to_all_js': 'common-v2/config.js'}},
