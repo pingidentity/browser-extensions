@@ -48,19 +48,20 @@ def sensible_default_for_toolbar():
 	]
 
 def pre_create_all_js():
-	# current_jQuery = 'common-v2/jquery-1.5.2.js'
-	current_jQuery = 'common-v2/jquery-2.2.4.js'
 	return [
 		{'do': {'add_to_all_js': 'common-v2/all-prefix.js'}},
 
 		{'when': {'platform_is': 'ie'}, 'do': {'add_to_all_js': 'common-v2/json2.js'}},
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': current_jQuery}},
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-ui-1.10.4.custom.js'}},
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-noConflict.js'}},
+
+		{'do': {'add_to_all_js': 'common-v2/jquery-2.2.4.js'}},
+		{'do': {'add_to_all_js': 'common-v2/jquery-ui-1.10.4.custom.js'}},
+		{'do': {'add_to_all_js': 'common-v2/jquery-noConflict.js'}},
 		
 		{'do': {'add_to_all_js': 'common-v2/api-prefix.js'}},
 		{'do': {'add_to_all_js': 'common-v2/config.js'}},
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/api-jquery.js'}},
+
+		{'do': {'add_to_all_js': 'common-v2/api-jquery.js'}},
+
 		{'do': {'add_to_all_js': 'common-v2/api.js'}},
 	]
 
@@ -99,7 +100,7 @@ def post_create_all_js():
 		{'when': {'platform_is': 'firefox'}, 'do': {'add_to_all_js': 'firefox/template-app/data/assets_forge/api-firefox.js'}},
 		{'do': {'add_to_all_js': 'common-v2/api-expose.js'}},
 		{'do': {'add_to_all_js': 'common-v2/api-suffix.js'}},
-		
+
 		{'do': {'add_to_all_js': 'common-v2/all-suffix.js'}},
 
 		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
