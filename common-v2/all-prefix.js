@@ -1,3 +1,4 @@
+
 (function () {
     if (document.all && !document.addEventListener) {
         console.log('[PingOne] IE8 and below are not supported!');
@@ -5,5 +6,3 @@
     }
     
     // START concatenate_files
-
-

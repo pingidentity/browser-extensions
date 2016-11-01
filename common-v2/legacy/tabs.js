@@ -1,3 +1,4 @@
+
 /**
  * Generate a regex (as a string) for a chrome match pattern
  */

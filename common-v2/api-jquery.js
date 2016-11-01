@@ -1,3 +1,8 @@
+
+//===============================================================
+// api-jquery.js
+//===============================================================
+
 // Forge jQuery reference
 
 var $ = window.jQuery.noConflict(true);
@@ -11,8 +16,8 @@ if (window.$ && window.$ === undefined) {
 }
 
 // Never treat AJAX requests as cross domain
-$.ajaxPrefilter(function (options) {
-	if (options.crossDomain) {
-		options.crossDomain = false;
-	}
-});
+// $.ajaxPrefilter(function (options) {
+// 	if (options.crossDomain) {
+// 		options.crossDomain = false;
+// 	}
+// });

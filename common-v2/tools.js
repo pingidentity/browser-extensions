@@ -1,3 +1,4 @@
+
 forge['tools'] = {
 	/**
 	 * Creates an RFC 4122 compliant UUID.

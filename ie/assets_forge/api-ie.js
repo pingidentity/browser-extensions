@@ -1,3 +1,4 @@
+
 /* global forge, internal, safe_jparse, safe_jstringify */
 
 /**

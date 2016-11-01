@@ -1,3 +1,4 @@
+
 forge['is'] = {
 	/**
 	 * @return {boolean}

@@ -1,3 +1,4 @@
+
 forge['request'] = {
 	/**
 	 * Get the response data from a URL. Imposes no cross-domain restrictions.

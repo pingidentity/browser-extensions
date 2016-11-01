@@ -1,3 +1,4 @@
+
 /*! Copyright 2011 Trigger Corp. All rights reserved. */
 // Start function wrapper to create local scope.
 (function () {

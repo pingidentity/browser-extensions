@@ -1,3 +1,4 @@
+
 forge['document'] = {
 	'reload': function() {
 		return document.location.reload();

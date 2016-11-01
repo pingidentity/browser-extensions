@@ -49,30 +49,34 @@ def sensible_default_for_toolbar():
 
 def pre_create_all_js():
 	return [
+		# start file
 		{'do': {'add_to_all_js': 'common-v2/all-prefix.js'}},
 
 		{'when': {'platform_is': 'ie'}, 'do': {'add_to_all_js': 'common-v2/json2.js'}},
 
+		# jquery
 		{'do': {'add_to_all_js': 'common-v2/jquery-2.2.4.js'}},
 		{'do': {'add_to_all_js': 'common-v2/jquery-ui-1.10.4.custom.js'}},
 		{'do': {'add_to_all_js': 'common-v2/jquery-noConflict.js'}},
+		# {'do': {'add_to_all_js': 'common-v2/api-jquery.js'}},
 		
+		# start api
 		{'do': {'add_to_all_js': 'common-v2/api-prefix.js'}},
 		{'do': {'add_to_all_js': 'common-v2/config.js'}},
-
-		{'do': {'add_to_all_js': 'common-v2/api-jquery.js'}},
-
 		{'do': {'add_to_all_js': 'common-v2/api.js'}},
 	]
 
 def post_create_all_js():
 	return [
+		# common api
 		{'do': {'add_to_all_js': 'common-v2/modules/is/common.js'}},
 		{'do': {'add_to_all_js': 'common-v2/modules/logging/default.js'}},
 		{'do': {'add_to_all_js': 'common-v2/modules/internal/default.js'}},
 		{'do': {'add_to_all_js': 'common-v2/modules/event/common.js'}},
 		{'do': {'add_to_all_js': 'common-v2/reload.js'}},
 		{'do': {'add_to_all_js': 'common-v2/tools.js'}},
+
+		# specific browser api
 		{'when': {'platform_is': 'chrome'}, 'do': {'concatenate_files': {
 			'in': ('chrome/assets_forge/api-chrome.js',),
 			'out': 'chrome/forge/all.js'
@@ -98,11 +102,15 @@ def post_create_all_js():
 			'out': 'ie/forge/all-priv.js'
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'add_to_all_js': 'firefox/template-app/data/assets_forge/api-firefox.js'}},
+
+		# close api
 		{'do': {'add_to_all_js': 'common-v2/api-expose.js'}},
 		{'do': {'add_to_all_js': 'common-v2/api-suffix.js'}},
 
+		# close file
 		{'do': {'add_to_all_js': 'common-v2/all-suffix.js'}},
 
+		# specific for Firefox
 		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
 			'from': 'firefox/template-app/data/assets_forge/api-firefox-bg.js',
 			'to': 'firefox/template-app/data/forge/api-firefox-bg.js'

@@ -1,3 +1,4 @@
+
 forge['message'] = {
 	/**
 	 * Add a listener for broadcast messages sent by other pages where your extension is active.
