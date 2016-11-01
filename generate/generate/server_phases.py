@@ -58,11 +58,11 @@ def pre_create_all_js():
 		{'do': {'add_to_all_js': 'common-v2/jquery-2.2.4.js'}},
 		{'do': {'add_to_all_js': 'common-v2/jquery-ui-1.10.4.custom.js'}},
 		{'do': {'add_to_all_js': 'common-v2/jquery-noConflict.js'}},
-		# {'do': {'add_to_all_js': 'common-v2/api-jquery.js'}},
 		
 		# start api
 		{'do': {'add_to_all_js': 'common-v2/api-prefix.js'}},
 		{'do': {'add_to_all_js': 'common-v2/config.js'}},
+		{'do': {'add_to_all_js': 'common-v2/api-jquery.js'}},
 		{'do': {'add_to_all_js': 'common-v2/api.js'}},
 	]
 
