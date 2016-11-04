@@ -122,7 +122,7 @@ def post_create_all_js():
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
 			'from': 'common-v2/jquery-2.2.4.js',
-			'to': 'firefox/template-app/data/forge/jquery.js'
+			'to': 'firefox/template-app/data/forge/jquery-2.2.4.js'
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
 			'from': 'common-v2/jquery-ui-1.10.4.custom.js',
