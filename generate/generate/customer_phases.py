@@ -62,19 +62,19 @@ def include_platform_in_html(debug=False):
 	return [
 		{'when': {'platform_is': 'firefox'}, 'do': {'insert_head_tag': {
 			"root_dir": locations["firefox"],
-			"tag": "<script src='%{back_to_parent}%forge/app_config.js'></script><script src='%{back_to_parent}%forge/all.js'></script>"
+			"tag": "<!--[if gt IE 8]><!--><script src='%{back_to_parent}%forge/app_config.js'></script><script src='%{back_to_parent}%forge/all.js'></script><script src='%{back_to_parent}%forge/jquery-2.2.4.js'></script><script src='%{back_to_parent}%forge/jquery-ui-1.10.4.custom.js'></script><script src='%{back_to_parent}%forge/jquery-noConflict.js'></script><!--<![endif]-->"
 		}}},
 		{'when': {'platform_is': 'chrome'}, 'do': {'insert_head_tag': {
 			"root_dir": locations["chrome"],
-			"tag": "<script src='/forge/app_config.js'></script><script src='/forge/all.js'></script>"
+			"tag": "<!--[if gt IE 8]><!--><script src='/forge/app_config.js'></script><script src='/forge/all.js'></script><!--<![endif]-->"
 		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'insert_head_tag': {
 			"root_dir": locations["safari"],
-			"tag": "<script src='%{back_to_parent}%forge/app_config.js'></script><script src='%{back_to_parent}%forge/all.js'></script>"
+			"tag": "<!--[if gt IE 8]><!--><script src='%{back_to_parent}%forge/app_config.js'></script><script src='%{back_to_parent}%forge/all.js'></script><!--<![endif]-->"
 		}}},
 		{'when': {'platform_is': 'ie'}, 'do': {'insert_head_tag': {
 			"root_dir": locations["ie"],
-			"tag": "<script src='%{back_to_parent}%forge/app_config.js'></script><script src='%{back_to_parent}%forge/all.js'></script>"
+			"tag": "<!--[if gt IE 8]><!--><script src='%{back_to_parent}%forge/app_config.js'></script><script src='%{back_to_parent}%forge/all.js'></script><!--<![endif]-->"
 		}}},
 	]
 

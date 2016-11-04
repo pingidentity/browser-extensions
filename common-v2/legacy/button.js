@@ -1,3 +1,4 @@
+
 forge['button'] = {
 	/**
 	 * Closes the popup launched from the toolbar button (with optional callbacks)

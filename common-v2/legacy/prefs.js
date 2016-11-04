@@ -1,3 +1,4 @@
+
 forge['prefs'] = {
 	/**
 	 * Get a preference stored by your application.

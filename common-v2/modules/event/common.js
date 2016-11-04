@@ -1,3 +1,4 @@
+
 forge['event'] = {
 	'menuPressed': {
 		addListener: function (callback, error) {

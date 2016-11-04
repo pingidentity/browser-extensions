@@ -1,3 +1,4 @@
+
 forge['file'] = {
 	/**
 	 * Allow the user to select an image and give a file object representing it.

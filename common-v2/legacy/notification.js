@@ -1,3 +1,4 @@
+
 forge['notification'] = {
 	/**
 	 * Create a standard un-customized notification.

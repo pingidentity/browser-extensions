@@ -1,3 +1,4 @@
+
 var nullFunction = function () {};
 /**
  * Override the internal.priv.call function to actually call a
@@ -116,4 +117,4 @@ logMessage = function(message, level) {
 				break;
 		}
 	}
-}
+};

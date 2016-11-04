@@ -1,3 +1,4 @@
+
 /*
  * Platform independent API.
  */
@@ -149,7 +150,7 @@ internal.addEventListener = function (event, callback) {
 	} else {
 		internal.listeners[event] = [callback];
 	}
-}
+};
 
 /**
  * Generate query string
@@ -236,7 +237,7 @@ internal.disabledModule = function (cb, module) {
 		type: "UNAVAILABLE",
 		subtype: "DISABLED_MODULE"
 	});
-}
+};
 
 // Method to enable debug mode
 forge.enableDebug = function () {

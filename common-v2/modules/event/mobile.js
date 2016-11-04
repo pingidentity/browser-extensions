@@ -1,3 +1,4 @@
+
 var nullObj = {};
 internal.currentOrientation = nullObj;
 internal.currentConnectionState = nullObj;

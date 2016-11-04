@@ -1,3 +1,4 @@
+
 forge['reload'] = {
 	'updateAvailable': function(success, error) {
 		internal.priv.call("reload.updateAvailable", {}, success, error);

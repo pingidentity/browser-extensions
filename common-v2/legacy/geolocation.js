@@ -1,3 +1,4 @@
+
 forge['geolocation'] = {
 	'getCurrentPosition': function (one, two, three) {
 		if (typeof(one) === "object") {
@@ -19,4 +20,3 @@ forge['geolocation'] = {
 		}
 	}
 };
-
