@@ -138,7 +138,7 @@ def add_to_all_js(build, file):
 	all_js_paths = {
 		'ie': ('ie/forge/all.js', 'ie/forge/all-priv.js',),
 		'safari': ('forge.safariextension/forge/all.js', 'forge.safariextension/forge/all-priv.js',),
-		'firefox': ('firefox/template-app/data/forge/all.js',),
+		'firefox': ('firefox/forge/all.js', 'firefox/forge/all-priv.js',),
 		'chrome': ('chrome/forge/all.js', 'chrome/forge/all-priv.js',),
 	}
 	for platform in build.enabled_platforms:
@@ -263,31 +263,6 @@ def ant_build(build, new_working_dir, scheme='partial'):
 			raise Exception('ant build error')
 		else:
 			build.log.debug('ant build output: %s' % out)
-	finally:
-		os.chdir(original_dir)
-
-@task
-def cfx_build(build, source_dir):
-	original_dir = os.getcwd()
-	try:
-		os.chdir(source_dir)
-
-		cmd = ["python", path.join(build.source_dir, 'firefox', 'addon-sdk', 'bin', 'cfx'), "xpi"]
-		try:
-			update_url = build.config["plugins"]["update_url"]["config"]["firefox"]
-			cmd += ["--update-url", update_url]
-		except (KeyError, TypeError):
-			# no FF update URL defined
-			pass
-		
-		build.log.debug('running cfx command: "%s"' % (cmd))
-		cfx = subprocess.Popen(cmd, stdout=PIPE, stderr=STDOUT)
-		out = cfx.communicate()[0]
-		if cfx.returncode != 0:
-			build.log.error('cfx error: %s' % out)
-			raise Exception('cfx error')
-		else:
-			build.log.debug('cfx output: %s' % out)
 	finally:
 		os.chdir(original_dir)
 

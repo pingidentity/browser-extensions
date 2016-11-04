@@ -100,6 +100,17 @@
 						"package_name": {
 							"type": "string",
 							"required": false
+						},
+						"content_security_policy": {
+							"required": false,
+							"type": "string"
+						},
+						"web_accessible_resources": {
+							"required": false,
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
 						}
 					}
 				}

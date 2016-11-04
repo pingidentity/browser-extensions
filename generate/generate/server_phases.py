@@ -10,7 +10,7 @@ def copy_platform_source():
 	return [
 		{'do': {'addon_source': 'common-v2'}},
 		{'do': {'addon_source': 'plugin/schema'}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'addon_source': 'firefox/template-app'}},
+		{'when': {'platform_is': 'firefox'}, 'do': {'addon_source': 'firefox'}},
 		{'when': {'platform_is': 'chrome'}, 'do': {'addon_source': 'chrome'}},
 		{'when': {'platform_is': 'safari'}, 'do': {'addon_source': 'forge.safariextension'}},
 		{'when': {'platform_is': 'ie'}, 'do': {'addon_source': 'ie'}},
@@ -32,7 +32,7 @@ def copy_common_files():
 			'from': 'common-v2/forge', 'to': 'chrome/forge'
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'copy_files': {
-			'from': 'common-v2/forge', 'to': 'firefox/template-app/data/forge'
+			'from': 'common-v2/forge', 'to': 'firefox/forge'
 		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'copy_files': {
 			'from': 'common-v2/forge', 'to': 'forge.safariextension/forge'
@@ -51,10 +51,10 @@ def pre_create_all_js():
 	current_jQuery = 'common-v2/jquery-1.5.2.js'
 	return [
 		{'when': {'platform_is': 'ie'}, 'do': {'add_to_all_js': 'common-v2/json2.js'}},
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': current_jQuery}},
+		{'when': {'platform_is': 'chrome,firefox,safari,ie'}, 'do': {'add_to_all_js': current_jQuery}},
 		{'do': {'add_to_all_js': 'common-v2/api-prefix.js'}},
 		{'do': {'add_to_all_js': 'common-v2/config.js'}},
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/api-jquery.js'}},
+		{'when': {'platform_is': 'chrome,firefox,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/api-jquery.js'}},
 		{'do': {'add_to_all_js': 'common-v2/api.js'}},
 	]
 
@@ -74,6 +74,14 @@ def post_create_all_js():
 			'in': ('common-v2/api-priv.js', 'chrome/assets_forge/api-priv-chrome.js',),
 			'out': 'chrome/forge/all-priv.js'
 		}}},
+		{'when': {'platform_is': 'firefox'}, 'do': {'concatenate_files': {
+			'in': ('firefox/assets_forge/api-firefox.js',),
+			'out': 'firefox/forge/all.js'
+		}}},
+		{'when': {'platform_is': 'firefox'}, 'do': {'concatenate_files': {
+			'in': ('common-v2/api-priv.js', 'firefox/assets_forge/api-priv-firefox.js',),
+			'out': 'firefox/forge/all-priv.js'
+		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'concatenate_files': {
 			'in': ('forge.safariextension/assets_forge/api-safari.js',),
 			'out': 'forge.safariextension/forge/all.js'
@@ -90,30 +98,14 @@ def post_create_all_js():
 			'in': ('common-v2/api-priv.js', 'ie/assets_forge/api-proxy.js', 'ie/assets_forge/api-priv-ie.js',),
 			'out': 'ie/forge/all-priv.js'
 		}}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'add_to_all_js': 'firefox/template-app/data/assets_forge/api-firefox.js'}},
 		{'do': {'add_to_all_js': 'common-v2/api-expose.js'}},
 		{'do': {'add_to_all_js': 'common-v2/api-suffix.js'}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
-			'from': 'firefox/template-app/data/assets_forge/api-firefox-bg.js',
-			'to': 'firefox/template-app/data/forge/api-firefox-bg.js'
-		}}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
-			'from': 'firefox/template-app/data/assets_forge/api-firefox-proxy.js',
-			'to': 'firefox/template-app/data/forge/api-firefox-proxy.js'
-		}}},
 	]
 	
-def copy_def_prefs_loader():
-	return [
-		{'when': {'platform_is': 'firefox'}, 'do': {'copy_files': {
-			'from': 'firefox/template-app/module', 'to': 'firefox/template-app/data/forge/module'
-		}}},
-	]
-
 def remove_assets_forge():
 	return [
 		{'when': {'platform_is': 'chrome'}, 'do': {'remove_files': 'chrome/assets_forge'}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'remove_files': 'firefox/template-app/data/assets_forge'}},
+		{'when': {'platform_is': 'firefox'}, 'do': {'remove_files': 'firefox/assets_forge'}},
 		{'when': {'platform_is': 'safari'}, 'do': {'remove_files': 'forge.safariextension/assets_forge'}},
 		{'when': {'platform_is': 'ie'}, 'do': {'remove_files': 'ie/assets_forge'}},
 	]
@@ -128,10 +120,8 @@ def platform_specific_templating(build):
 		)}},
 		
 		{'when': {'platform_is': 'firefox'}, 'do': {'template_files': (
-			'firefox/template-app/package.json',
-			'firefox/template-app/lib/main.js',	
-			'firefox/template-app/data/forge/module/defaultPreferencesLoader.jsm',		
-			'firefox/template-app/data/forge.html',
+			'firefox/forge.html',
+			'firefox/manifest.json'
 		)}},
 		
 		{'when': {'platform_is': 'safari'}, 'do': {'template_files': (
@@ -156,11 +146,8 @@ def minification():
 		)}},
 		
 		{'when': {'platform_is': 'firefox', 'is_external': ()}, 'do': {'minify_in_place': (
-			'firefox/template-app/data/forge/all.js',
-			'firefox/template-app/data/forge/api-firefox-bg.js',
-			'firefox/template-app/data/forge/api-firefox-proxy.js',
-			'firefox/template-app/lib/main.js',
-			'firefox/template-app/data/forge/module/defaultPreferencesLoader.jsm',			
+			'firefox/forge/all.js',
+			'firefox/forge/all-priv.js',			
 		)}},
 
 		{'when': {'platform_is': 'safari', 'is_external': ()}, 'do': {'minify_in_place': (
@@ -183,15 +170,6 @@ def add_plugins():
 def platform_specific_build():
 	'Run any platform specific build steps'
 	return [
-		{'when': {'platform_is': 'firefox'}, 'do': {'cfx_build': 'firefox/template-app'}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'extract_files': {
-			'from': 'firefox/template-app/f.xpi',
-			'to': 'firefox/template-app/output'
-		}}},
-        {'when': {'platform_is': 'firefox'}, 'do': {'copy_package_file': {
-			'from': 'firefox/template-app/package.json',
-			'to': 'firefox/template-app/output/resources/f/package.json'
-		}}},
 		{'when': {'platform_is': 'ie'}, 'do': {'remove_files': (
 			'ie/build/Win32/Debug',
 			'ie/build/x64/Debug',
@@ -213,7 +191,7 @@ def handle_template_output():
 			"to": "development/chrome"
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
-			"from": "firefox/template-app/output",
+			"from": "firefox",
 			"to": "development/firefox"
 		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'rename_files': {
