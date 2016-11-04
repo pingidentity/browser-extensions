@@ -56,9 +56,9 @@ def pre_create_all_js():
 
 		# jquery
 		# firefox will warning if we include jquery into all.js
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-2.2.4.js'}},
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-ui-1.10.4.custom.js'}},
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-noConflict.js'}},
+		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery/jquery-2.2.4.js'}},
+		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery/jquery-ui-1.10.4.custom.js'}},
+		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery/jquery-noConflict.js'}},
 		
 		# start api
 		{'do': {'add_to_all_js': 'common-v2/api-prefix.js'}},
@@ -120,17 +120,8 @@ def post_create_all_js():
 			'from': 'firefox/template-app/data/assets_forge/api-firefox-proxy.js',
 			'to': 'firefox/template-app/data/forge/api-firefox-proxy.js'
 		}}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
-			'from': 'common-v2/jquery-2.2.4.js',
-			'to': 'firefox/template-app/data/forge/jquery-2.2.4.js'
-		}}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
-			'from': 'common-v2/jquery-ui-1.10.4.custom.js',
-			'to': 'firefox/template-app/data/forge/jquery-ui.js'
-		}}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
-			'from': 'common-v2/jquery-noConflict.js',
-			'to': 'firefox/template-app/data/forge/jquery-noConflict.js'
+		{'when': {'platform_is': 'firefox'}, 'do': {'copy_files': {
+			'from': 'common-v2/jquery', 'to': 'firefox/template-app/data/forge'
 		}}},
 	]
 	

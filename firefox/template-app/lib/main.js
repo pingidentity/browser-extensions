@@ -471,9 +471,9 @@ exports.main = function(options, callbacks) {
 	pageMod.PageMod({
 		include: patternsToRe(${json.dumps(activation.patterns)}),
 		{% if activation.has_key("all_frames") and activation["all_frames"] is True %}
-			contentScriptFile: strArrToDataUrl(${json.dumps(["forge/app_config.js", "forge/all.js"] + ["forge/jquery-2.2.4.js", "forge/jquery-ui.js", "forge/jquery-noConflict.js"] + activation.scripts)}),
+			contentScriptFile: strArrToDataUrl(${json.dumps(["forge/app_config.js", "forge/all.js"] + ["forge/jquery-2.2.4.js", "forge/jquery-ui-1.10.4.custom.js", "forge/jquery-noConflict.js"] + activation.scripts)}),
 		{% end %} {% if not activation.has_key("all_frames") or activation["all_frames"] is False %}
-			contentScriptFile: strArrToDataUrl(${json.dumps(["forge/app_config.js", "forge/all.js", "forge/disable-frames.js"] + ["forge/jquery-2.2.4.js", "forge/jquery-ui.js", "forge/jquery-noConflict.js"] + activation.scripts)}),
+			contentScriptFile: strArrToDataUrl(${json.dumps(["forge/app_config.js", "forge/all.js", "forge/disable-frames.js"] + ["forge/jquery-2.2.4.js", "forge/jquery-ui-1.10.4.custom.js", "forge/jquery-noConflict.js"] + activation.scripts)}),
 		{% end %}
 		{% if activation.has_key("run_at") %}
 			contentScriptWhen: ${json.dumps(activation.run_at)},
