@@ -4,4 +4,3 @@
         return;
     }
     // START concatenate_files
-    
