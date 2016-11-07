@@ -1,4 +1,7 @@
+
 // Forge jQuery reference
+
+window.jQueryBE = window.jQuery.noConflict();
 
 var $ = window.jQuery.noConflict(true);
 

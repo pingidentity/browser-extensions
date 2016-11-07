@@ -516,13 +516,14 @@ def wrap_activations(build, location):
 				for script in activation['scripts']:
 					tmp_file = uuid.uuid4().hex
 					filename = location+script[3:]
-					build.log.debug("wrapping activation {filename}".format(**locals()))
-					in_file_contents = read_file_as_str(filename)
-					in_file_contents = '// firefox complains when the first line is an if statement\n' + 'if (forge._disableFrames === undefined || window.location == window.parent.location) {\n' + in_file_contents + '\n}';
-					with codecs.open(tmp_file, 'w', encoding='utf8') as out_file:
-						out_file.write(in_file_contents)
-					os.remove(filename)
-					shutil.move(tmp_file, filename)
+					if not filename.endswith(("jquery-2.2.4.js", "jquery-ui-1.10.4.custom.js")):
+						build.log.debug("wrapping activation {filename}".format(**locals()))
+						in_file_contents = read_file_as_str(filename)
+						in_file_contents = '// firefox complains when the first line is an if statement\n' + 'if (forge._disableFrames === undefined || window.location == window.parent.location) {\n' + in_file_contents + '\n}';
+						with codecs.open(tmp_file, 'w', encoding='utf8') as out_file:
+							out_file.write(in_file_contents)
+						os.remove(filename)
+						shutil.move(tmp_file, filename)
 		
 @task
 def populate_icons(build, platform, icon_list):

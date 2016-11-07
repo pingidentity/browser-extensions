@@ -37,6 +37,7 @@ window.console.log   = (window.console.log ? window.console.log : fallbackLogger
 window.console.error = (window.console.error ? window.console.error : fallbackLogger("error"));
 window.console.debug = (window.console.debug ? window.console.debug : fallbackLogger("debug"));
 window.console.warn = (window.console.warn ? window.console.warn : fallbackLogger("warn"));
+window.console.info = (window.console.info ? window.console.info : fallbackLogger("info"));
 
 /**
  * Identity

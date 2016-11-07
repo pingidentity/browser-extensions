@@ -58,19 +58,22 @@
               font-size   : 10pt;
             }
         </style>
+        <!--[if gt IE 8]><!-->
 		<script type="text/javascript" src="forge/app_config.js"></script>
         <script type="text/javascript" src="forge/all-priv.js"></script>
 		{% if defined("plugins") and "background" in plugins and "config" in plugins["background"] and "files" in plugins["background"]["config"] %}\
             {% for bg_file in plugins["background"]["config"]["files"] %}\
-	        {% if bg_file.startswith('http://') or bg_file.startswith('https://') %}\
-		    <script type="text/javascript" src="${bg_file}"></script>
-	        {% end %}
-	        {% if not bg_file.startswith('/') and not bg_file.startswith('http://') and not bg_file.startswith('https://') %}\
-		    <script type="text/javascript" src="src/${bg_file}"></script>
-	        {% end %}
-	        {% if bg_file.startswith('/') %}\
-		    <script type="text/javascript" src="src${bg_file}"></script>
-	        {% end %}
+                {% if not bg_file.endswith(("jquery-2.2.4.js", "jquery-ui-1.10.4.custom.js")) %}\
+                    {% if bg_file.startswith('http://') or bg_file.startswith('https://') %}\
+                    <script type="text/javascript" src="${bg_file}"></script>
+                    {% end %}
+                    {% if not bg_file.startswith('/') and not bg_file.startswith('http://') and not bg_file.startswith('https://') %}\
+                    <script type="text/javascript" src="src/${bg_file}"></script>
+                    {% end %}
+                    {% if bg_file.startswith('/') %}\
+                    <script type="text/javascript" src="src${bg_file}"></script>
+                    {% end %}
+                {% end %}
             {% end %}
 		{% end %}
             <script>
@@ -81,6 +84,7 @@
                     }
                 };
             </script>
+        <!--[if gt IE 8]><!-->
     </head>
 
     <body>
