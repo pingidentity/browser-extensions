@@ -233,7 +233,6 @@ def platform_specific_build():
 
 def handle_template_output():
 	return [
-		{'do': {'remove_files': 'common-v2'}},
 		{'when': {'platform_is': 'chrome'}, 'do': {'rename_files': {
 			"from": "chrome",
 			"to": "development/chrome"
@@ -258,6 +257,7 @@ def handle_template_output():
 			"from": "ie",
 			"to": "development/ie"
 		}}},
+		{'do': {'remove_files': 'common-v2'}},
 	]
 
 def copy_lib_files_to_template(source_dir):
