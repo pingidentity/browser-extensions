@@ -242,6 +242,14 @@ def handle_template_output():
 			"from": "firefox/template-app/output",
 			"to": "development/firefox"
 		}}},
+		{'when': {'platform_is': 'firefox'}, 'do': {'clone_files': {
+			'from': 'common-v2/jquery-2.2.4.js',
+			'to': 'development/firefox/resources/f/data/forge/jquery.js'
+		}}},
+		{'when': {'platform_is': 'firefox'}, 'do': {'clone_files': {
+			'from': 'common-v2/jquery-ui-1.10.4.custom.js',
+			'to': 'development/firefox/resources/f/data/forge/jquery-ui.custom.js'
+		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'rename_files': {
 			"from": "forge.safariextension",
 			"to": "development/forge.safariextension"
