@@ -72,6 +72,13 @@ ${content_script(activation)}{% end for %}\
 	]{% end if %}{% if 'icons' in plugins and 'firefox' in plugins['icons']['config'] %},
 	"icons": ${json.dumps(plugins['icons']['config']['firefox'])}{% end if icons.config.firefox in plugins %}{% if "button" in plugins and "config" in plugins["button"] %},
 	"browser_action": ${json.dumps(clean_browser_action(plugins['button']['config']))}{% end if %}{% end %}{% if "update_url" in plugins and "config" in plugins["update_url"] and "firefox" in plugins["update_url"]["config"] %},
-	"update_url": ${json.dumps(plugins["update_url"]["config"]["firefox"])} {% end defined('update_url') and "firefox" in update_url %},
-	"manifest_version": 2
+	"manifest_version": 2,
+	"applications": {
+		"gecko": {
+			"id": ${json.dumps(value_of("uuid", "")+"@jetpack")},
+			"strict_min_version": "45",
+			"strict_max_version": "50.*",
+			"update_url": ${json.dumps(plugins["update_url"]["config"]["firefox"])} {% end defined('update_url') and "firefox" in update_url %}
+		}
+	}
 }
