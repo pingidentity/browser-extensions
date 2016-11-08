@@ -62,7 +62,12 @@ def include_platform_in_html(debug=False):
 	return [
 		{'when': {'platform_is': 'firefox'}, 'do': {'insert_head_tag': {
 			"root_dir": locations["firefox"],
-			"tag": "<!--[if gt IE 8]><!--><script src='%{back_to_parent}%forge/app_config.js'></script><script src='%{back_to_parent}%forge/all.js'></script><!--<![endif]-->"
+			"tag": "<!--[if gt IE 8]><!-->\
+			<script src='%{back_to_parent}%forge/app_config.js'></script>\
+			<script src='%{back_to_parent}%forge/all.js'></script>\
+			<script src='%{back_to_parent}%forge/jquery.js'></script>\
+			<script src='%{back_to_parent}%forge/jquery-ui.custom.js'></script>\
+			<!--<![endif]-->"
 		}}},
 		{'when': {'platform_is': 'chrome'}, 'do': {'insert_head_tag': {
 			"root_dir": locations["chrome"],

@@ -516,7 +516,7 @@ def wrap_activations(build, location):
 				for script in activation['scripts']:
 					tmp_file = uuid.uuid4().hex
 					filename = location+script[3:]
-					if not filename.endswith(("jquery-2.2.4.js", "jquery-ui-1.10.4.custom.js")):
+					if not filename.endswith(("jquery.js", "jquery-ui.js", "jquery-ui.custom.js")):
 						build.log.debug("wrapping activation {filename}".format(**locals()))
 						in_file_contents = read_file_as_str(filename)
 						in_file_contents = '// firefox complains when the first line is an if statement\n' + 'if (forge._disableFrames === undefined || window.location == window.parent.location) {\n' + in_file_contents + '\n}';
