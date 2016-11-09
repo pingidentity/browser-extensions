@@ -76,8 +76,6 @@ ${content_script(activation)}{% end for %}\
 	"applications": {
 		"gecko": {
 			"id": ${json.dumps(value_of("uuid", "")+"@jetpack")},
-			"strict_min_version": "45",
-			"strict_max_version": "50.*",
 			"update_url": ${json.dumps(plugins["update_url"]["config"]["firefox"])} {% end defined('update_url') and "firefox" in update_url %}
 		}
 	}
