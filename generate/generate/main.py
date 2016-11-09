@@ -50,7 +50,6 @@ class WMGenerator(object):
 			self.build.add_steps(server_phases.override_plugins())
 		self.build.add_steps(server_phases.sensible_default_for_toolbar())
 		self.build.add_steps(server_phases.copy_common_files())
-		self.build.add_steps(server_phases.copy_def_prefs_loader())
 		self.build.add_steps(server_phases.pre_create_all_js())
 		if (set(['ie', 'chrome', 'safari', 'firefox']) & set(self.build.enabled_platforms)):
 			self.build.add_steps(legacy_phases.create_all_js())

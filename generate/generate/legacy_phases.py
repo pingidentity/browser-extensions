@@ -10,7 +10,7 @@ _icon_path_for_customer = {
 
 locations = {
 	'chrome': 'development/chrome/src',
-	'firefox': 'development/firefox/resources/f/data/src',
+	'firefox': 'development/firefox/src',
 	'safari': 'development/forge.safariextension/src',
 	'ie': 'development/ie/src',
 }
@@ -52,6 +52,16 @@ def platform_specific_templating(build):
 			"key": "web_accessible_resources",
 			"value": web_accessible_resources
 		}}},
+		{'when': {'platform_is': 'firefox', 'config_property_exists': 'core.firefox.content_security_policy'}, 'do': {'set_in_json': {
+			"filename": 'firefox/manifest.json',
+			"key": "content_security_policy",
+			"value": content_security_policy
+		}}},
+		{'when': {'platform_is': 'firefox', 'config_property_exists': 'core.firefox.web_accessible_resources'}, 'do': {'set_in_json': {
+			"filename": 'firefox/manifest.json',
+			"key": "web_accessible_resources",
+			"value": web_accessible_resources
+		}}},
 	]
 
 def customer_phase():
@@ -60,7 +70,6 @@ def customer_phase():
 		return path.join(icon_path[platform], sub_path)
 
 	return [
-		{'when': {'platform_is': 'firefox'}, 'do': {'wrap_activations': locations["firefox"]}},
 		{'when': {'platform_is': 'safari'}, 'do': {'wrap_activations': locations["safari"]}},
 		{'when': {'platform_is': 'chrome'}, 'do': {'populate_icons': ("chrome", [16, 48, 128])}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'populate_icons': ("firefox", [32, 64])}},
@@ -79,23 +88,4 @@ def customer_phase():
 			'to': icon("safari", 'icon-64.png')
 		}}},
 		
-		{'when': {'platform_is': 'firefox', 'icon_available': ('firefox', '32')}, 'do': {'copy_files': {
-			'from': '${plugins["icons"]["config"]["firefox"]["32"]}',
-			'to': icon("firefox", 'icon.png')
-		}}},
-        # copy icon.png for package with jpm
-        {'when': {'platform_is': 'firefox', 'icon_available': ('firefox', '32')}, 'do': {'copy_files': {
-			'from': '${plugins["icons"]["config"]["firefox"]["32"]}',
-			'to': icon("firefox", 'resources/f/icon.png')
-		}}},
-		{'when': {'platform_is': 'firefox', 'icon_available': ('firefox', '64')}, 'do': {'copy_files': {
-			'from': '${plugins["icons"]["config"]["firefox"]["64"]}',
-			'to': icon("firefox", 'icon64.png')
-		}}},
-        # copy icon64.png for package with jpm
-        {'when': {'platform_is': 'firefox', 'icon_available': ('firefox', '64')}, 'do': {'copy_files': {
-			'from': '${plugins["icons"]["config"]["firefox"]["64"]}',
-			'to': icon("firefox", 'resources/f/icon64.png')
-		}}},
-
 	]

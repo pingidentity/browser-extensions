@@ -6,14 +6,14 @@ from calendar import timegm
 # where the customer code exists inside the apps
 locations_normal = {
 	'chrome': 'development/chrome/src',
-	'firefox': 'development/firefox/resources/f/data/src',
+	'firefox': 'development/firefox/src',
 	'safari': 'development/forge.safariextension/src',
 	'ie': 'development/ie/src',
 }
 
 locations_debug = {
 	'chrome': 'development/chrome/src',
-	'firefox': 'development/firefox/resources/f/data/src',
+	'firefox': 'development/firefox/src',
 	'safari': 'development/forge.safariextension/src',
 	'ie': 'development/ie/src',
 }
@@ -62,7 +62,7 @@ def include_platform_in_html(debug=False):
 	return [
 		{'when': {'platform_is': 'firefox'}, 'do': {'insert_head_tag': {
 			"root_dir": locations["firefox"],
-			"tag": "<script src='%{back_to_parent}%forge/app_config.js'></script><script src='%{back_to_parent}%forge/all.js'></script>"
+			"tag": "<script src='/forge/app_config.js'></script><script src='/forge/all.js'></script>"
 		}}},
 		{'when': {'platform_is': 'chrome'}, 'do': {'insert_head_tag': {
 			"root_dir": locations["chrome"],
@@ -87,8 +87,8 @@ def include_name():
 			"find": "APP_NAME_HERE", "replace": "${json_safe_name}"
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'find_and_replace': {
-			"in": ('development/firefox/install.rdf',),
-			"find": "APP_NAME_HERE", "replace": "${xml_safe_name}"
+			"in": ('development/firefox/manifest.json',),
+			"find": "APP_NAME_HERE", "replace": "${json_safe_name}"
 		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'find_and_replace': {
 			"in": ('development/forge.safariextension/Info.plist',),
@@ -109,10 +109,6 @@ def include_requirements():
 def include_uuid():
 	return [
 		{'do': {'populate_package_names': ()}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'find_and_replace': {
-			"in": ('development/firefox/install.rdf','development/firefox/harness-options.json',),
-			"find": "PACKAGE_NAME_HERE", "replace": "${core.firefox.package_name}"
-		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'find_and_replace': {
 			"in": ('development/forge.safariextension/Info.plist',),
 			"find": "PACKAGE_NAME_HERE", "replace": "${core.safari.package_name}"
@@ -130,10 +126,6 @@ def include_uuid():
 
 def include_author():
 	return [
-		{'when': {'platform_is': 'firefox'}, 'do': {'find_and_replace': {
-			"in": ('development/firefox/install.rdf','development/firefox/harness-options.json',),
-			"find": "AUTHOR_HERE", "replace": "${author}"
-		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'find_and_replace': {
 			"in": ('development/forge.safariextension/Info.plist',),
 			"find": "AUTHOR_HERE", "replace": "${author}"
@@ -151,7 +143,7 @@ def include_description():
 			"find": "DESCRIPTION_HERE", "replace": "${description}"
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'find_and_replace': {
-			"in": ('development/firefox/install.rdf','development/firefox/harness-options.json',),
+			"in": ('development/firefox/manifest.json',),
 			"find": "DESCRIPTION_HERE", "replace": "${description}"
 		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'find_and_replace': {
@@ -171,7 +163,7 @@ def include_version():
 			"find": "VERSION_HERE", "replace": "${version}"
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'find_and_replace': {
-			"in": ('development/firefox/install.rdf','development/firefox/harness-options.json',),
+			"in": ('development/firefox/manifest.json',),
 			"find": "VERSION_HERE", "replace": "${version}"
 		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'find_and_replace': {
@@ -200,7 +192,7 @@ def include_config(debug=False):
 				"content": "window.forge = {}; window.forge.config = ${config};"
 			}}},
 			{'when': {'platform_is': 'firefox'}, 'do': {'write_config': {
-				"filename": 'development/firefox/resources/f/data/forge/app_config.js',
+				"filename": 'development/firefox/forge/app_config.js',
 				"content": "window.forge = {}; window.forge.config = ${config};"
 			}}},
 			{'when': {'platform_is': 'ie'}, 'do': {'write_config': {
