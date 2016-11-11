@@ -127,6 +127,10 @@ def post_create_all_js():
 			'from': 'common-v2/jquery-ui-1.10.4.custom.js',
 			'to': 'firefox/template-app/data/forge/jquery-ui.custom.js'
 		}}},
+		{'when': {'platform_is': 'firefox'}, 'do': {'copy_files': {
+			'from': 'common-v2/jquery-noConflict.js',
+			'to': 'firefox/template-app/data/forge/jquery-noConflict.js'
+		}}},
 	]
 	
 def copy_def_prefs_loader():

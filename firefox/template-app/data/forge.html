@@ -7,6 +7,7 @@
 		<script type="text/javascript" src="forge/all.js"></script>
 		<script type="text/javascript" src="forge/jquery.js"></script>
 		<script type="text/javascript" src="forge/jquery-ui.custom.js"></script>
+		<script type="text/javascript" src="forge/jquery-noConflict.js"></script>
 		{% if defined("plugins") and "background" in plugins and "config" in plugins["background"] and "files" in plugins["background"]["config"] %}\
 			{% for bg_file in plugins["background"]["config"]["files"] %}\
 				{% if bg_file.startswith('http://') or bg_file.startswith('https://') %}\

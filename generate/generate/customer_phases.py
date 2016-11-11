@@ -67,6 +67,7 @@ def include_platform_in_html(debug=False):
 			<script src='%{back_to_parent}%forge/all.js'></script>\
 			<script src='%{back_to_parent}%forge/jquery.js'></script>\
 			<script src='%{back_to_parent}%forge/jquery-ui.custom.js'></script>\
+			<script src='%{back_to_parent}%forge/jquery-noConflict.js'></script>\
 			<!--<![endif]-->"
 		}}},
 		{'when': {'platform_is': 'chrome'}, 'do': {'insert_head_tag': {
