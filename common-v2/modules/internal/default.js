@@ -6,3 +6,4 @@ forge['internal'] = {
 	'addEventListener': internal.addEventListener,
 	listeners: internal.listeners
 };
+

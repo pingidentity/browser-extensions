@@ -305,3 +305,4 @@ forge['request']['ajax'] = function (options, success, error) {
 		error && error.apply(this, arguments);
 	});
 };
+

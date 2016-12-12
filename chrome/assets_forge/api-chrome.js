@@ -1,3 +1,4 @@
+
 /*
  * api-chrome.js
  * 
@@ -8,7 +9,7 @@
  * Set up port through which all content script <-> background app
  * communication will happen
  */
-var port = chrome.extension.connect({name: 'bridge'});
+var port = chrome.runtime.connect({ name: 'bridge' });
 port.onMessage.addListener(function (msg) {
 	internal.priv.receive(msg);
 });
@@ -17,23 +18,23 @@ port.onMessage.addListener(function (msg) {
  * Calls native code from JS
  * @param {*} data Object to send to privileged/native code.
  */
-internal.priv.send = function(data) {
+internal.priv.send = function (data) {
 	port.postMessage(data);
-}
+};
 
 /**
  * @return {boolean}
  */
 forge.is.desktop = function () {
 	return true;
-}
+};
 
 /**
  * @return {boolean}
  */
 forge.is.chrome = function () {
 	return true;
-}
+};
 
 /**
  * Add a listener for broadcast messages sent by other pages where your extension is active.
@@ -43,7 +44,7 @@ forge.is.chrome = function () {
  * @param {function(*, function(*))=} callback
  * @param {function({message: string}=} error
  */
-forge.message.listen = function(type, callback, error) {
+forge.message.listen = function (type, callback, error) {
 	if (typeof type === 'function') {
 		// no type passed in: shift arguments left one
 		error = callback;
@@ -51,24 +52,24 @@ forge.message.listen = function(type, callback, error) {
 		type = null;
 	}
 
-	chrome.extension.onConnect.addListener(function(port) {
+	chrome.runtime.onConnect.addListener(function (port) {
 		//don't want to hear anything intended for background
 		if (port.name === 'message:to-priv' ||
-				port.name === 'message:to-non-priv' ||
-				port.name === 'bridge') {
+			port.name === 'message:to-non-priv' ||
+			port.name === 'bridge') {
 			return;
 		}
 
-		port.onMessage.addListener(function(message) {
+		port.onMessage.addListener(function (message) {
 			if (type === null || type === message.type) {
-				callback(message.content, function(reply) {
+				callback(message.content, function (reply) {
 					// send back reply
 					port.postMessage(reply);
 				});
 			}
 		});
 	});
-}
+};
 /**
  * Broadcast a message to listeners set up in your background code.
  *
@@ -77,15 +78,15 @@ forge.message.listen = function(type, callback, error) {
  * @param {function(*)=} callback
  * @param {function({message: string}=} error
  */
-forge.message.broadcastBackground = function(type, content, callback, error) {
-	var port = chrome.extension.connect({name:'message:to-priv'});
+forge.message.broadcastBackground = function (type, content, callback, error) {
+	var port = chrome.runtime.connect({ name: 'message:to-priv' });
 	if (callback) {
-		port.onMessage.addListener(function(message) {
+		port.onMessage.addListener(function (message) {
 			// one of the listeners has replied to us
 			callback(message);
-		})
+		});
 	}
-	port.postMessage({type: type, content: content});
+	port.postMessage({ type: type, content: content });
 };
 /**
  * Broadcast a message to all other pages where your extension is active.
@@ -95,13 +96,14 @@ forge.message.broadcastBackground = function(type, content, callback, error) {
  * @param {function(*)=} callback
  * @param {function({message: string}=} error
  */
-forge.message.broadcast = function(type, content, callback, error) {
-	var port = chrome.extension.connect({name:'message:to-non-priv'});
+forge.message.broadcast = function (type, content, callback, error) {
+	var port = chrome.runtime.connect({ name: 'message:to-non-priv' });
 	if (callback) {
-		port.onMessage.addListener(function(message) {
+		port.onMessage.addListener(function (message) {
 			// one of the listeners has replied to us
 			callback(message);
 		});
 	}
-	port.postMessage({type: type, content: content});
+	port.postMessage({ type: type, content: content });
 };
+

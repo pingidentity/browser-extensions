@@ -6,3 +6,4 @@ forge['document'] = {
 		success(document.location);
 	}
 };
+

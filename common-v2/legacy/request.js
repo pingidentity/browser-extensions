@@ -62,3 +62,4 @@ forge['request']['ajax'] = function (options) {
 	};
 	internal.priv.call("request.ajax", options, success, error);
 };
+
