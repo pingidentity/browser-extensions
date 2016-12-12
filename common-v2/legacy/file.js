@@ -172,3 +172,4 @@ forge['file'] = {
 		internal.priv.call("file.clearCache", {}, success, error);
 	}
 };
+

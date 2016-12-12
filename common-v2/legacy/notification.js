@@ -28,3 +28,4 @@ forge['notification'] = {
 		}, success, error);
 	}
 };
+

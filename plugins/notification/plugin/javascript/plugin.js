@@ -57,3 +57,4 @@ forge['notification'] = {
 		forge.internal.call("notification.hideLoading", {}, success, error);
 	}
 };
+

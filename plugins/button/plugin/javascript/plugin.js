@@ -74,3 +74,4 @@ forge['button'] = {
 		forge.internal.call("button.setTitle", title, success, error);
 	}
 };
+

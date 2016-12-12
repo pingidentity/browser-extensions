@@ -1,25 +1,26 @@
+
 /*
  * For Chrome.
  */
 
-chrome.extension.onConnect.addListener(function(port) {
+chrome.runtime.onConnect.addListener(function (port) {
 	if (port.name === 'bridge') {
-		port.onMessage.addListener(function(msg) {
+		port.onMessage.addListener(function (msg) {
 			function handleResult(status) {
-				return function(content) {
+				return function (content) {
 					// create and send response message
-					var reply = {callid: msg.callid, status: status, content: content};
+					var reply = { callid: msg.callid, status: status, content: content };
 					port.postMessage(reply);
-				}
+				};
 			}
 			internal.priv.call(
-					msg.method, msg.params,
-					handleResult('success'), handleResult('error')
+				msg.method, msg.params,
+				handleResult('success'), handleResult('error')
 			);
 		});
-	} else if(port.name === 'message:to-non-priv') {
+	} else if (port.name === 'message:to-non-priv') {
 		// Special request from non-priv to pass this message on to other non-priv pages
-		port.onMessage.addListener(function(message) {
+		port.onMessage.addListener(function (message) {
 			forge.message.broadcast(message.type, message.content, function (reply) {
 				port.postMessage(reply);
 			});
@@ -41,18 +42,17 @@ chrome.extension.onConnect.addListener(function(port) {
  *  its first argument
  * @param {function} error Not used.
  */
-forge.message.listen = function(type, callback, error)
-{
-	if (typeof(type) === 'function') {
+forge.message.listen = function (type, callback, error) {
+	if (typeof (type) === 'function') {
 		// no type passed in: shift arguments left one
 		error = callback;
 		callback = type;
 		type = null;
 	}
 
-	chrome.extension.onConnect.addListener(function(port) {
+	chrome.runtime.onConnect.addListener(function (port) {
 		if (port.name === 'message:to-priv') {
-			port.onMessage.addListener(function(message) {
+			port.onMessage.addListener(function (message) {
 				if (type === null || type === message.type) {
 					callback && callback(message.content, function (reply) {
 						// send back reply
@@ -73,12 +73,12 @@ forge.message.listen = function(type, callback, error)
  * @param {function} callback reply function
  * @param {function} error Not used.
  */
-forge.message.broadcast = function(type, content, callback, error) {
-	chrome.windows.getAll({populate: true}, function (windows) {
+forge.message.broadcast = function (type, content, callback, error) {
+	chrome.windows.getAll({ populate: true }, function (windows) {
 		windows.forEach(function (win) {
 			win.tabs.forEach(function (tab) {
 				//skip hosted pages
-				if (tab.url.indexOf('chrome-extension:') != 0) {
+				if (tab.url.indexOf('chrome-extension:') !== 0) {
 					var port = chrome.tabs.connect(tab.id);
 					if (callback) {
 						port.onMessage.addListener(function (message) {
@@ -86,60 +86,61 @@ forge.message.broadcast = function(type, content, callback, error) {
 							callback(message);
 						});
 					}
-					port.postMessage({type: type, content: content});
+					port.postMessage({ type: type, content: content });
 				}
-			})
+			});
 		});
 	});
 	// Also to popup
-	var port = chrome.extension.connect();
+	var port = chrome.runtime.connect();
 	if (callback) {
-		port.onMessage.addListener(function(message) {
+		port.onMessage.addListener(function (message) {
 			// this is a reply from a recipient non-privileged page
 			callback(message);
 		});
 	}
-	port.postMessage({type: type, content: content});
-}
+	port.postMessage({ type: type, content: content });
+};
 
 /**
  * @return {boolean}
  */
-forge.is.desktop = function() {
+forge.is.desktop = function () {
 	return true;
 };
 
 /**
  * @return {boolean}
  */
-forge.is.chrome = function() {
+forge.is.chrome = function () {
 	return true;
 };
 
 // Private API implementation
 var apiImpl = {
 	message: {
-		toFocussed: function(params, callback, error) {
-			chrome.windows.getCurrent(function (win) {
-				chrome.tabs.getSelected(win.id, function (tab) {
+		toFocussed: function (params, callback, error) {
+			chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+				var tab = tabs[0];
+				if (tab) {
 					var port = chrome.tabs.connect(tab.id);
 					port.onMessage.addListener(function (message) {
 						// this is a reply from the focussed non-privileged page
 						callback(message);
 					});
-					port.postMessage({type: params.type, content: params.content});
-				});
+					port.postMessage({ type: params.type, content: params.content });
+				}
 			});
 		}
 	},
 	notification: {
-		create: function(params, success, error) {
+		create: function (params, success, error) {
 			// 0 is PERMISSION_ALLOWED
 			if (window.webkitNotifications.checkPermission() == 0) {
 				var notification = window.webkitNotifications.createNotification(
-						'', // icon
-						params.title,
-						params.text
+					'', // icon
+					params.title,
+					params.text
 				);
 				notification.show();
 				success();
@@ -161,20 +162,20 @@ var apiImpl = {
 		},
 		keys: function (params, success, error) {
 			var keys = [];
-			for (var i=0; i<window.localStorage.length; i++) {
+			for (var i = 0; i < window.localStorage.length; i++) {
 				keys.push(window.localStorage.key(i));
 			}
 			success(keys);
 		},
 		all: function (params, success, error) {
 			var all = {};
-			for (var i=0; i<window.localStorage.length; i++) {
-				var key = window.localStorage.key(i)
+			for (var i = 0; i < window.localStorage.length; i++) {
+				var key = window.localStorage.key(i);
 				all[key] = window.localStorage.getItem(key);
 			}
 			success(all);
 		},
-		clear: function (params, success, error) 	{
+		clear: function (params, success, error) {
 			success(window.localStorage.removeItem(params.key));
 		},
 		clearAll: function (params, success, error) {
@@ -203,29 +204,29 @@ var apiImpl = {
 			params.success = success;
 			params.error = function (xhr, status, err) {
 				error({
-					message: 'api.ajax with '+JSON.stringify(params)+'failed. '+status+': '+err,
+					message: 'api.ajax with ' + JSON.stringify(params) + 'failed. ' + status + ': ' + err,
 					type: 'EXPECTED_FAILURE',
 					status: status,
 					statusCode: xhr.status,
 					err: err
 				});
-			}
+			};
 			$.ajax(params);
 		}
 	},
 	tabs: {
 		open: function (params, success, error) {
-			chrome.tabs.create({url: params.url, selected: !params.keepFocus}, success);
+			chrome.tabs.create({ url: params.url, selected: !params.keepFocus }, success);
 		},
 		closeCurrent: function (params, success, error) {
 			if (params.hash) {
 				var window, tab, url;
 
-				chrome.windows.getAll({populate: true}, function (windows) {
+				chrome.windows.getAll({ populate: true }, function (windows) {
 					while (windows.length) {
 						window = windows.pop();
 
-						chrome.tabs.getAllInWindow(window.id, function (tabs) {
+						chrome.tabs.query({ currentWindow: true }, function (tabs) {
 							while (tabs.length) {
 								tab = tabs.pop();
 								url = tab.url;
@@ -236,9 +237,9 @@ var apiImpl = {
 									return;
 								}
 							}
-						})
+						});
 					}
-				})
+				});
 			} else {
 				error({
 					message: 'hash was not passed to as part of params to closeCurrent',
@@ -246,49 +247,49 @@ var apiImpl = {
 				});
 			}
 		},
-		getCurrent: function(params, success, error) {
-			chrome.tabs.query({ currentWindow: true, active: true }, 
+		getCurrent: function (params, success, error) {
+			chrome.tabs.query({ currentWindow: true, active: true },
 				function (tabs) {
-  					if (typeof tabs !== "undefined") {
-  						var tab = tabs[0];
-  						success({id: tab.id, url: tab.url});
-  					}
-  					else {
-  						// TODO error
-  					}
+					if (typeof tabs !== "undefined") {
+						var tab = tabs[0];
+						success({ id: tab.id, url: tab.url });
+					}
+					else {
+						// TODO error
+					}
 				}
 			);
 		},
 		/**
 		 * NOTE Should only be called from the background script
 		 */
-		onTabSelectionChanged: function(params, success, error) {
+		onTabSelectionChanged: function (params, success, error) {
 			forge.logging.error('TABS [forge] onTabSelectionChanged: register');
- 			chrome.tabs.onActivated.addListener(function(activeInfo) {
- 				// onActivated does not contain url info which we need.
- 				// Query the newly current tab to get both id and url info.
- 				chrome.tabs.query({ currentWindow: true, active: true }, 
+			chrome.tabs.onActivated.addListener(function (activeInfo) {
+				// onActivated does not contain url info which we need.
+				// Query the newly current tab to get both id and url info.
+				chrome.tabs.query({ currentWindow: true, active: true },
 					function (tabs) {
-	  					if (typeof tabs !== "undefined") {
-	  						var tab = tabs[0];
-	  						forge.logging.error('TABS [forge] onTabSelectionChanged: ' + tab.id);
-	  						success({id: tab.id, url: tab.url});
-	  					}
-	  					else {
-	  						// TODO error
-	  					}
+						if (typeof tabs !== "undefined") {
+							var tab = tabs[0];
+							forge.logging.error('TABS [forge] onTabSelectionChanged: ' + tab.id);
+							success({ id: tab.id, url: tab.url });
+						}
+						else {
+							// TODO error
+						}
 					}
 				);
 			});
 		},
-		getAllTabs: function(params, success, error) {
-			chrome.tabs.query({ currentWindow: true }, 
+		getAllTabs: function (params, success, error) {
+			chrome.tabs.query({ currentWindow: true },
 				function (tabs) {
 					var result = [];
 					for (var i = 0; i < tabs.length; i++) {
 						var tab = tabs[i];
-						result[result.length] = {id: tab.id, url: tab.url};
-					}			
+						result[result.length] = { id: tab.id, url: tab.url };
+					}
 					success(result);
 				}
 			);
@@ -297,11 +298,11 @@ var apiImpl = {
 	button: {
 		setIcon: function (url, success, error) {
 			// NOTE: When setIcon() is called, it specifies the relative path to an image inside the extension
-			chrome.browserAction.setIcon({ "path": url } );
+			chrome.browserAction.setIcon({ "path": url });
 			success();
 		},
 		setURL: function (url, success, error) {
-			if(url.length > 0) {
+			if (url.length > 0) {
 				if (url.indexOf('/') === 0) {
 					url = 'src' + url;
 				} else {
@@ -309,33 +310,33 @@ var apiImpl = {
 				}
 			}
 
-			chrome.browserAction.setPopup({popup: url});
+			chrome.browserAction.setPopup({ popup: url });
 			success();
 		},
 		onClicked: {
 			addListener: function (params, callback, error) {
-				chrome.browserAction.setPopup({popup: ''});
+				chrome.browserAction.setPopup({ popup: '' });
 				chrome.browserAction.onClicked.addListener(callback);
 			}
 		},
 		setBadge: function (number, success, error) {
-			chrome.browserAction.setBadgeText({text: (number) ? number.toString() : ''});
+			chrome.browserAction.setBadgeText({ text: (number) ? number.toString() : '' });
 			success();
 		},
 		setBadgeBackgroundColor: function (colorArray, success, error) {
 			if (colorArray instanceof Array) {
-				colorArray = {color:colorArray};
+				colorArray = { color: colorArray };
 			}
 
 			chrome.browserAction.setBadgeBackgroundColor(colorArray);
 			success();
 		},
-		setTitle: function(title, success, error) {
-			success(chrome.browserAction.setTitle({title: title}));
+		setTitle: function (title, success, error) {
+			success(chrome.browserAction.setTitle({ title: title }));
 		}
 	},
 	logging: {
-		log: function(params, success, error) {
+		log: function (params, success, error) {
 			if (typeof console !== "undefined") {
 				switch (params.level) {
 					case 10:
@@ -366,13 +367,14 @@ var apiImpl = {
 		}
 	},
 	tools: {
-		getURL: function(params, success, error) {
- 			name = params.name.toString();
+		getURL: function (params, success, error) {
+			name = params.name.toString();
 			if (name.indexOf("http://") === 0 || name.indexOf("https://") === 0) {
- 				success(name);
+				success(name);
 			} else {
-				success(chrome.extension.getURL('src'+(name.substring(0,1) == '/' ? '' : '/')+name));
+				success(chrome.extension.getURL('src' + (name.substring(0, 1) == '/' ? '' : '/') + name));
 			}
 		}
 	}
-}
+};
+

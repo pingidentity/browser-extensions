@@ -59,3 +59,4 @@ forge['message'] = {
 		}, callback, error);
 	}
 };
+
