@@ -39,12 +39,6 @@ def get_run_at(run_at):
 		return 'document_idle'
 %}\
 {
-	"applications": {
-		"gecko": {
-			"id": ${json.dumps(value_of("uuid", "")+"@pingone.com")},
-			"update_url": ${json.dumps(plugins["update_url"]["config"]["firefox"])}
-		}
-  	},
 	"name": "APP_NAME_HERE",
 	"version": "VERSION_HERE",
 	"description": "DESCRIPTION_HERE",
