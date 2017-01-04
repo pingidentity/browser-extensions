@@ -119,11 +119,11 @@ def post_create_all_js():
 			'from': 'firefox/template-app/data/assets_forge/api-firefox-proxy.js',
 			'to': 'firefox/template-app/data/forge/api-firefox-proxy.js'
 		}}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'copy_files': {
+		{'when': {'platform_is': 'firefox'}, 'do': {'clone_files': {
 			'from': 'common-v2/jquery-2.2.4.js',
 			'to': 'firefox/template-app/data/forge/jquery.js'
 		}}},
-		{'when': {'platform_is': 'firefox'}, 'do': {'copy_files': {
+		{'when': {'platform_is': 'firefox'}, 'do': {'clone_files': {
 			'from': 'common-v2/jquery-ui-1.10.4.custom.js',
 			'to': 'firefox/template-app/data/forge/jquery-ui.custom.js'
 		}}},
@@ -237,7 +237,6 @@ def platform_specific_build():
 
 def handle_template_output():
 	return [
-		{'do': {'remove_files': 'common-v2'}},
 		{'when': {'platform_is': 'chrome'}, 'do': {'rename_files': {
 			"from": "chrome",
 			"to": "development/chrome"
@@ -245,6 +244,14 @@ def handle_template_output():
 		{'when': {'platform_is': 'firefox'}, 'do': {'rename_files': {
 			"from": "firefox/template-app/output",
 			"to": "development/firefox"
+		}}},
+		{'when': {'platform_is': 'firefox'}, 'do': {'clone_files': {
+			'from': 'common-v2/jquery-2.2.4.js',
+			'to': 'development/firefox/resources/f/data/forge/jquery.js'
+		}}},
+		{'when': {'platform_is': 'firefox'}, 'do': {'clone_files': {
+			'from': 'common-v2/jquery-ui-1.10.4.custom.js',
+			'to': 'development/firefox/resources/f/data/forge/jquery-ui.custom.js'
 		}}},
 		{'when': {'platform_is': 'safari'}, 'do': {'rename_files': {
 			"from": "forge.safariextension",
@@ -254,6 +261,7 @@ def handle_template_output():
 			"from": "ie",
 			"to": "development/ie"
 		}}},
+		{'do': {'remove_files': 'common-v2'}},
 	]
 
 def copy_lib_files_to_template(source_dir):

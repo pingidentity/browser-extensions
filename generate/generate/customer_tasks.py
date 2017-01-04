@@ -207,14 +207,21 @@ def rename_files(build, **kw):
 	if 'from' not in kw or 'to' not in kw:
 		raise ConfigurationError('rename_files requires "from" and "to" keyword arguments')
 
-	return _rename_or_copy_files(build, kw['from'], kw['to'], rename=True)
+	return _rename_or_copy_files(build, kw['from'], kw['to'], rename=True, clone=False)
+
+@task
+def clone_files(build, **kw):
+	if 'from' not in kw or 'to' not in kw:
+		raise ConfigurationError('copy_files requires "from" and "to" keyword arguments')
+		
+	return _rename_or_copy_files(build, kw['from'], kw['to'], rename=False, clone=True)
 
 @task
 def copy_files(build, **kw):
 	if 'from' not in kw or 'to' not in kw:
 		raise ConfigurationError('copy_files requires "from" and "to" keyword arguments')
 		
-	return _rename_or_copy_files(build, kw['from'], kw['to'], rename=False, ignore_patterns=kw.get('ignore_patterns'))
+	return _rename_or_copy_files(build, kw['from'], kw['to'], rename=False, clone=False, ignore_patterns=kw.get('ignore_patterns'))
 
 class Pattern(object):
 	def __init__(self, type, value):
@@ -254,7 +261,7 @@ def git_ignore(root, patterns):
 	return git_ignorer
 
 @task
-def _rename_or_copy_files(build, frm, to, rename=True, ignore_patterns=None):
+def _rename_or_copy_files(build, frm, to, rename=True, clone=False, ignore_patterns=None):
 	if ignore_patterns is None:
 		ignore_patterns = []
 
@@ -267,6 +274,9 @@ def _rename_or_copy_files(build, frm, to, rename=True, ignore_patterns=None):
 	if rename:
 		build.log.info('renaming {from_} to {to}'.format(**locals()))
 		shutil.move(from_, to)
+	elif clone:
+		build.log.info('cloning {from_} to {to}'.format(**locals()))
+		shutil.copyfile(from_, to)
 	else:
 		if '*' in to:
 			# looks like a glob - last directory in path might not exist.

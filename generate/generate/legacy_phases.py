@@ -98,4 +98,12 @@ def customer_phase():
 			'to': icon("firefox", 'resources/f/icon64.png')
 		}}},
 
+		# {'when': {'platform_is': 'firefox'}, 'do': {'clone_files': {
+		# 	'from': 'common-v2/jquery-2.2.4.js',
+		# 	'to': 'development/firefox/resources/f/data/forge/jquery.js'
+		# }}},
+		# {'when': {'platform_is': 'firefox'}, 'do': {'clone_files': {
+		# 	'from': 'common-v2/jquery-ui-1.10.4.custom.js',
+		# 	'to': 'development/firefox/resources/f/data/forge/jquery-ui.custom.js'
+		# }}},
 	]
