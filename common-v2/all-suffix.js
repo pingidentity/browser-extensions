@@ -3,5 +3,7 @@
 })();
 
 // BE-2268
-// Restore [define] to it original
-define = tmpDefine;
+// Restore [define] to its original
+if (typeof tmpDefine === "function" && tmpDefine.amd) {
+    define = tmpDefine;
+}
