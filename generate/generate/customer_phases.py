@@ -136,6 +136,10 @@ def include_uuid():
 
 def include_author():
 	return [
+		{'when': {'platform_is': 'chrome'}, 'do': {'find_and_replace': {
+			"in": ('development/chrome/manifest.json',),
+			"find": "AUTHOR_HERE", "replace": "${author}"
+		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'find_and_replace': {
 			"in": ('development/firefox/install.rdf','development/firefox/harness-options.json',),
 			"find": "AUTHOR_HERE", "replace": "${author}"
