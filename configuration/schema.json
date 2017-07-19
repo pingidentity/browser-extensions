@@ -218,8 +218,7 @@
 						}, 
 						"default_icon": {
 							"required": false, 
-							"type": "string",
-							"_filepicker": true
+							"type": "object"
 						}, 
 						"default_popup": {
 							"required": false, 
