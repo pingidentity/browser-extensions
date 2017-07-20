@@ -74,23 +74,39 @@ forge.message.listen = function (type, callback, error) {
  * @param {function} error Not used.
  */
 forge.message.broadcast = function (type, content, callback, error) {
-	chrome.windows.getAll({ populate: true }, function (windows) {
-		windows.forEach(function (win) {
-			win.tabs.forEach(function (tab) {
-				//skip hosted pages
-				if (tab.url.indexOf('chrome-extension:') !== 0) {
-					var port = chrome.tabs.connect(tab.id);
-					if (callback) {
-						port.onMessage.addListener(function (message) {
-							// this is a reply from a recipient non-privileged page
-							callback(message);
-						});
-					}
-					port.postMessage({ type: type, content: content });
+	if (forge.is.edge()) {
+		chrome.tabs.query({}, function (tabs) {
+			tabs.forEach(function (tab) {
+				if (callback) {
+					chrome.runtime.onMessage.addListener(function (message) {
+						// this is a reply from a recipient non-privileged page
+						callback(message);
+					});
 				}
+				chrome.tabs.sendMessage(tab.id, { type: type, content: content });
 			});
 		});
-	});
+	} else {
+		chrome.windows.getAll({ populate: true }, function (windows) {
+			windows.forEach(function (win) {
+				win.tabs.forEach(function (tab) {
+					//skip hosted pages
+					if (tab.url.indexOf('chrome\u002Dextension:') !== 0) { // 'Microsoft Edge Extension Toolkit' barfs at 'chrome-Extension' (when all lowercase) when used in strings or comments, even though its not a call
+						var port = chrome.tabs.connect(tab.id);
+
+						if (callback) {
+							port.onMessage.addListener(function (message) {
+								// this is a reply from a recipient non-privileged page
+								callback(message);
+							});
+						}
+						port.postMessage({ type: type, content: content });
+					}
+				});
+			});
+		});
+	}
+
 	// Also to popup
 	var port = chrome.runtime.connect();
 	if (callback) {
@@ -116,6 +132,23 @@ forge.is.chrome = function () {
 	return true;
 };
 
+/**
+ * @return {boolean}
+ */
+forge.is.edge = function () {
+	if (window !== undefined && window.navigator !== undefined) {
+		var ua = window.navigator.userAgent;
+		if (ua !== undefined) {
+			var edge = ua.indexOf('Edge/');
+			if (edge > 0) {
+				return true;
+			}
+
+			return false;
+		}
+	}
+};
+
 // Private API implementation
 var apiImpl = {
 	message: {
@@ -123,12 +156,16 @@ var apiImpl = {
 			chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
 				var tab = tabs[0];
 				if (tab) {
-					var port = chrome.tabs.connect(tab.id);
-					port.onMessage.addListener(function (message) {
-						// this is a reply from the focussed non-privileged page
-						callback(message);
-					});
-					port.postMessage({ type: params.type, content: params.content });
+					if (forge.is.edge()) {
+						chrome.tabs.sendMessage(tab.id, { type: params.type, content: params.content });
+					} else {
+						var port = chrome.tabs.connect(tab.id);
+						port.onMessage.addListener(function (message) {
+							// this is a reply from the focussed non-privileged page
+							callback(message);
+						});
+						port.postMessage({ type: params.type, content: params.content });
+					}
 				}
 			});
 		}
