@@ -197,8 +197,14 @@
 								}, 
 								"chrome": {
 									"required": false, 
-									"type": "string",
-									"_filepicker": true
+									"type": "object",
+									"properties": {
+										"16": {
+											"required": false,
+											"type": "string",
+											"_filepicker": true
+										}
+									}
 								}, 
 								"firefox": {
 									"required": false, 
@@ -218,7 +224,8 @@
 						}, 
 						"default_icon": {
 							"required": false, 
-							"type": "object"
+							"type": "string",
+							"_filepicker": true
 						}, 
 						"default_popup": {
 							"required": false, 
