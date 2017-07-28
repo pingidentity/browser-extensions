@@ -37,23 +37,6 @@ forge.is.chrome = function () {
 };
 
 /**
- * @return {boolean}
- */
-forge.is.edge = function () {
-	if (window !== undefined && window.navigator !== undefined) {
-		var ua = window.navigator.userAgent;
-		if (ua !== undefined) {
-			var edge = ua.indexOf('Edge/');
-			if (edge > 0) {
-				return true;
-			}
-
-			return false;
-		}
-	}
-};
-
-/**
  * Add a listener for broadcast messages sent by other pages where your extension is active.
  *
  * @param {string} type (optional) an arbitrary string: if included, the callback will only be fired

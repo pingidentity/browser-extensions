@@ -117,3 +117,11 @@ logMessage = function(message, level) {
 		}
 	}
 }
+
+/**
+ * @returns {boolean}
+ */
+forge.isBackground = function () {
+    return true;
+};
+
