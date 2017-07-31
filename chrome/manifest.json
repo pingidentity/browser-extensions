@@ -52,7 +52,9 @@ def get_run_at(run_at):
 			"matches": ${json.dumps(activation.patterns)}
 			, "js": ${json.dumps(["forge/app_config.js", "forge/all.js"] + activation.scripts)}
 {% if activation.has_key("styles") %}\
+	{% if len(eval(json.dumps(activation.styles))) > 0 %}\
 			, "css": ${json.dumps(activation.styles)}
+	{% end if len(eval(json.dumps(activation.styles))) > 0 %}\
 {% end if activation.has_key("styles") %}\
 {% if activation.has_key("run_at") %}\
 			, "run_at": ${json.dumps(get_run_at(activation.run_at))}
