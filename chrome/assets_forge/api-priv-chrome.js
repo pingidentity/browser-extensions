@@ -132,23 +132,6 @@ forge.is.chrome = function () {
 	return true;
 };
 
-/**
- * @return {boolean}
- */
-forge.is.edge = function () {
-	if (window !== undefined && window.navigator !== undefined) {
-		var ua = window.navigator.userAgent;
-		if (ua !== undefined) {
-			var edge = ua.indexOf('Edge/');
-			if (edge > 0) {
-				return true;
-			}
-
-			return false;
-		}
-	}
-};
-
 // Private API implementation
 var apiImpl = {
 	message: {

@@ -47,6 +47,22 @@ forge['is'] = {
 	'ie': function() {
 		return false;
 	},
+    /**
+     * @return {boolean}
+     */
+    'edge': function() {
+        if (window !== undefined && window.navigator !== undefined) {
+            var ua = window.navigator.userAgent;
+            if (ua !== undefined) {
+                var edge = ua.indexOf('Edge/');
+                if (edge > 0) {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+    },
 	/**
 	 * @return {boolean}
 	 */
