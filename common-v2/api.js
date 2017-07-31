@@ -250,3 +250,10 @@ setTimeout(function () {
 		alert("Warning!\n\n'forge.debug = true;' is no longer supported\n\nUse 'forge.enableDebug();' instead.")
 	}
 }, 3000);
+
+/**
+ * @returns {boolean}
+ */
+forge.isBackground = function () {
+    return false;
+};
