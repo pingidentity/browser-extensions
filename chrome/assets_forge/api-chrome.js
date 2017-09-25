@@ -110,6 +110,6 @@ forge.message.broadcast = function (type, content, callback, error) {
 /**
  * This function is supported on IE.
  */
-forge.tabs.executeScript = function() {
+forge.content.executeScript = function() {
 	throw 'Error: this function is only supported on IE. Instead of using this, try to use chrome.tabs.executeScript() on background side';
 };
