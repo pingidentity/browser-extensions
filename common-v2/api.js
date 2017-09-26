@@ -258,4 +258,6 @@ forge.isBackground = function () {
     return false;
 };
 
-forge.content = {};
+if (typeof forge.content === 'undefined') {
+	forge.content = {};
+}
