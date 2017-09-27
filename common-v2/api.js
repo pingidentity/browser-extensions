@@ -236,7 +236,7 @@ internal.disabledModule = function (cb, module) {
 		type: "UNAVAILABLE",
 		subtype: "DISABLED_MODULE"
 	});
-}
+};
 
 // Method to enable debug mode
 forge.enableDebug = function () {
@@ -257,3 +257,7 @@ setTimeout(function () {
 forge.isBackground = function () {
     return false;
 };
+
+if (typeof forge.content === 'undefined') {
+	forge.content = {};
+}

@@ -239,3 +239,11 @@ forge.document.location = function(success, error) {
 	a.href = window_extensions.get_location();
 	success(a);
 };
+
+/**
+ * @param {String} code
+ * @return {Void}
+ */
+forge.content.executeScript = function(code) {
+	eval(code);
+};
