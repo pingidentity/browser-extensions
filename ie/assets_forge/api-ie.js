@@ -245,5 +245,6 @@ forge.document.location = function(success, error) {
  * @return {Void}
  */
 forge.content.executeScript = function(code) {
-	eval(code);
+	var indirectCall = eval;
+	indirectCall(code);
 };
