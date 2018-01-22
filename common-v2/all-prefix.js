@@ -7,11 +7,6 @@ if (typeof define === "function" && define.amd) {
 }
 
 (function () {
-    if (document.all && !document.addEventListener) {
-        console.log('[PingOne] IE8 and below are not supported!');
-        return;
-    }
-
     if (typeof document.documentMode === 'number') {
         if (document.documentMode <= 8) {
             if (typeof console === 'object') {
