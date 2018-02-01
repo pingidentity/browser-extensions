@@ -27,8 +27,12 @@ if (typeof define === "function" && define.amd) {
             // BE-2553
             // When un-checking the setting, BHO can't re-init objects: window.extensions, window.messaging & window.accessible
             // => request the user to restart their browser.
-            if (typeof window.extensions !== 'object' && typeof window.messaging !== 'object' && typeof window.accessible !== 'object' && !inIframe()) {
-                alert('[PingOne] Please restart your browser!');
+            if (typeof window.extensions !== 'object' && typeof window.messaging !== 'object' && typeof window.accessible !== 'object') {
+                if (inIframe()) {
+                    // do nothing
+                } else {
+                    alert('[PingOne] Please restart your browser!');
+                }
                 return;
             }
         }
