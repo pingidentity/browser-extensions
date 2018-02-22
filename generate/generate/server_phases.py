@@ -48,12 +48,9 @@ def sensible_default_for_toolbar():
 	]
 
 def pre_create_all_js():
-	current_jQuery = 'common-v2/jquery-1.5.2.js'
 	return [
 		# start file
 		{'do': {'add_to_all_js': 'common-v2/all-prefix.js'}},
-
-		{'when': {'platform_is': 'ie'}, 'do': {'add_to_all_js': 'common-v2/json2.js'}},
 
 		# firefox will warning if we include jquery into all.js
 		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-2.2.4.js'}},
