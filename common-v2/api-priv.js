@@ -89,6 +89,8 @@ logMessage = function(message, level) {
 	message = '[' + eyeCatcher + ' BG' + '] '
 			+ (message.indexOf('\n') === -1 ? '' : '\n') + message;
 
+	message = forge.maskCredentials(message);
+
 	// Also log to the console if it exists.
 	if (typeof console !== "undefined") {
 		switch (level) {
