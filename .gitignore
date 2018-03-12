@@ -36,3 +36,5 @@ trigger-gen
 **/*.opensdf
 **/ipch
 generate/src/
+ie/msvc/.vs/
+.vscode/
