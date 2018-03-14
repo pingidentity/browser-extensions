@@ -37,6 +37,7 @@ class Manifest {
         wstring level;
         bool console;
         wstring filename;
+        wstring userlogfile;
     };
 
     wstring name;
