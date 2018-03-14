@@ -69,11 +69,28 @@ static wstring wstring_replace(const wstring& s, wchar_t from, wchar_t to) {
 
 static wstring wstring_limit(const wstring& s, size_t maxlen = 160) {
     size_t len = s.length();
-    if (len < maxlen) {
+    if (len <= maxlen) {
         return s;
     }
     return s.substr(0, maxlen / 2) +  L" ... <schnip /> ... " + 
         s.substr(len - maxlen / 2);
+}
+
+static wstring wstring_mask_password(const wstring& key, const wstring& value) {
+	// mask sensitive information
+	wstring maskedValue = L"null";
+	wstring::size_type isPasskey = key.find(L"passkey");
+	wstring::size_type isAccessToken = key.find(L"access_token");
+	if (isPasskey != wstring::npos || isAccessToken != wstring::npos)
+	{
+		if (value != L"null"){
+			maskedValue = L"********";
+		}
+	}
+	else {
+		maskedValue = wstring_limit(value);
+	}
+	return maskedValue;
 }
 
 static bool wstring_match_wild(const wstring& wildcard, const wstring& s) {

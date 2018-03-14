@@ -95,8 +95,8 @@ STDMETHODIMP CNativeExtensions::prefs_get(BSTR uuid,
 
     wstring value = Preferences(uuid).get(name);
 
-    logger->debug(L"NativeExtensions::prefs_get"
-                  L" -> " + wstring_limit(value));
+	logger->debug(L"NativeExtensions::prefs_get"
+		L" -> " + wstring_mask_password(name, value));
 
     CComQIPtr<IDispatchEx> dispatch(success);
     hr = CComDispatchDriver(dispatch).Invoke1((DISPID)0,
@@ -188,7 +188,7 @@ STDMETHODIMP CNativeExtensions::prefs_setSync(BSTR uuid, BSTR name, BSTR value)
     logger->debug(L"NativeExtensions::prefs_setSync"
                   L" -> " + wstring(uuid) +
                   L" -> " + wstring(name) +
-                  L" -> " + wstring_limit(value));
+				  L" -> " + wstring_mask_password(name, value));
 
     Preferences(uuid).set(name, value);
 

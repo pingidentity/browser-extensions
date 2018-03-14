@@ -1,9 +1,12 @@
 ;
+
 function loggerproxy(message) {
-    window.extensions.log("api-proxy.js", message);
+    if (window.extensions) {
+        window.extensions.log("api-proxy.js", message);
+    }
 };
 
-/** 
+/**
  * Utilities: string_limit
  */
 function string_limit(s, maxlen) {
@@ -11,13 +14,13 @@ function string_limit(s, maxlen) {
     if (s.length < maxlen) {
         return s;
     }
-    return s.substr(0, maxlen / 2) + " ... <schnip /> ... " + 
-            s.substr(s.length - maxlen / 2);
+    return s.substr(0, maxlen / 2) + " ... <schnip /> ... " +
+        s.substr(s.length - maxlen / 2);
 };
 window.string_limit = string_limit;
 
 
-/** 
+/**
  * Utilities: dump
  */
 function dump(object) {
@@ -48,7 +51,7 @@ function dumpXML(node) {
 window.dumpXML = dumpXML;
 
 
-/** 
+/**
  * Utilities: Array.indexOf
  * Includes test for older quirks mode doctypes
  */
@@ -64,7 +67,7 @@ if (typeof Array.prototype.indexOf !== 'function' && (typeof document.documentMo
 }
 
 
-/** 
+/**
  * Utilities: safe_jstringify
  */
 function safe_jstringify(o) {
@@ -73,15 +76,15 @@ function safe_jstringify(o) {
         s = JSON.stringify(o);
     } catch (e) {
         loggerproxy("[ERROR] failed serializing object to JSON" +
-                    " -> " + typeof o +
-                    " -> " + o +
-                    " -> " + JSON.stringify(e));
+            " -> " + typeof o +
+            " -> " + o +
+            " -> " + e);
     }
     //loggerproxy("safe_jstringify -> " + s);
     return s;
 }
 
-/** 
+/**
  * Utilities: safe_jparse
  */
 function safe_jparse(s) {
@@ -90,10 +93,9 @@ function safe_jparse(s) {
         o = JSON.parse(s);
     } catch (e) {
         loggerproxy("[ERROR] failed deserializing object from JSON" +
-                    " -> " + s +
-                    " -> " + JSON.stringify(e));
+            " -> " + s +
+            " -> " + e);
     }
     //loggerproxy("safe_jparse -> " + s);
     return o;
 };
-

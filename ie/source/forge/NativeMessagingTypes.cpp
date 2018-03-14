@@ -95,7 +95,7 @@ HRESULT Callback::Dispatch(const wstring& content, IDispatch *reply)
 
     wstring e = L"Callback::Dispatch failed"
         L" -> " + logger->parse(hr) +
-        L" -> " + content;
+		L" -> " + wstring_limit(content, 50); // do not log full content of credentials
     logger->error(e);
 
     if (hr != RPC_E_SERVER_UNAVAILABLE) 

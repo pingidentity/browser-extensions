@@ -191,6 +191,16 @@ var inspectObject = function (obj, showHidden, depth) {
  	}
  	return format(obj, (typeof depth === 'undefined' ? 2 : depth));
 };
+
+forge['maskCredentials'] = function(str) {
+    try {
+        var maskedStr = str.replace(/([\\]*)([\"'])value\1\2:([\\]*)([\"'])(.*?)\3\4/gi,'"value":"********"');
+        return maskedStr;
+    } catch (ex) {
+        return str;
+    }
+}
+
 var logMessage = function(message, level) {
 	if ('logging' in forge.config) {
 		var eyeCatcher = forge.config.logging.marker || 'FORGE';
@@ -199,6 +209,9 @@ var logMessage = function(message, level) {
 	}
 	message = '[' + eyeCatcher + '] '
 			+ (message.indexOf('\n') === -1 ? '' : '\n') + message;
+
+	message = forge.maskCredentials(message);
+
 	internal.priv.call("logging.log", {
 		message: message,
 		level: level

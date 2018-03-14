@@ -281,7 +281,7 @@ wstring Preferences::set(const wstring& key, const wstring& value)
 
     logger->debug(L"Preferences::set"
                   L" -> " + key +
-                  L" -> " + wstring_limit(value));
+				  L" -> " + wstring_mask_password(key, value));
 
     if (this->IsFirstRunAfterInstall()) {
         logger->debug(L"Preferences::set configuring registry");
@@ -308,7 +308,7 @@ wstring Preferences::set(const wstring& key, const wstring& value)
     if (result != ERROR_SUCCESS) {
         logger->debug(L"Preferences::set could not set value"
                       L" -> " + key +
-                      L" -> " + wstring_limit(value));
+					  L" -> " + wstring_mask_password(key, value));
         goto done;
     }
     ret = value;
