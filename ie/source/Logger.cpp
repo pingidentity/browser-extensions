@@ -8,11 +8,12 @@
 /**
  * Logger:::Logger
  */
-Logger::Logger(Level level, const std::wstring& filename)
+Logger::Logger(Level level, const std::wstring& filename, const std::wstring& userlogfile)
     : m_level(level), 
-      m_filename(filename)
+      m_filename(filename),
+      m_userlogfile(userlogfile)
 {
-    if (m_filename == L"") {
+    if (m_filename == L"" || m_userlogfile == L"") {
         this->enabled = false;
     } else {
         this->enabled = true;
@@ -59,42 +60,37 @@ void Logger::initialize(const boost::filesystem::wpath& path)
     if (!manifest) {
         this->debug(L"Logger::Logger could not read manifest");
         this->enabled = false;
-    } else if (manifest->logging.filename != L"") {
+    } else if (manifest->logging.filename != L"" && manifest->logging.userlogfile != L"") {
         // Replace environment variables in path so %LOCALAPPDATA%Low can be
         // used which is the only place where the low priviledged BHO process
         // can create files.
-        wchar_t expandedPath[MAX_PATH];
-        DWORD len = ::ExpandEnvironmentStrings(manifest->logging.filename.c_str(),
-                                               expandedPath, MAX_PATH);
-        if (len > 0 && len <= MAX_PATH) {
-            m_filename = expandedPath;
-
-            // try to open the file to see if it writeable
-            std::wofstream fs;
-            fs.open(m_filename, std::ios::out | std::ios::app);
-            if (!fs.is_open()) 
-            {
-                // get writeable path from IE (EPM can restrict access to the path provided)
-                LPWSTR writeableFolder;
-                HRESULT hr = ::IEGetWriteableFolderPath(FOLDERID_LocalAppDataLow, &writeableFolder);
-                if (SUCCEEDED(hr))
-                {
-                    m_filename = wstring(writeableFolder) + L"\\forgeRestricted.log";
-                    CoTaskMemFree(writeableFolder);
-                }
-            }
-            else
-            {
-                fs.close();
-            }
+        wchar_t expandedPath1[MAX_PATH];
+        DWORD len1 = ::ExpandEnvironmentStrings(manifest->logging.filename.c_str(),
+                                                expandedPath1, MAX_PATH);
+        if (len1 > 0 && len1 <= MAX_PATH) {
+            m_filename = expandedPath1;
         }
         else {
             this->error(L"Logger::Logger failed to expand environment variables in path");
             m_filename = manifest->logging.filename;
         }
 
+        this->debug(L"Logger::Logger using endpoint1: " + m_filename);
+
+        wchar_t expandedPath2[MAX_PATH];
+        DWORD len2 = ::ExpandEnvironmentStrings(manifest->logging.userlogfile.c_str(),
+                                                expandedPath2, MAX_PATH);
+        if (len2 > 0 && len2 <= MAX_PATH) {
+            m_userlogfile = expandedPath2;
+        }
+        else {
+            this->error(L"Logger::Logger failed to expand environment variables in path");
+            m_userlogfile = manifest->logging.userlogfile;
+        }
+
+        this->debug(L"Logger::Logger using endpoint2: " + m_userlogfile);
+
         this->enabled = true;
-        this->debug(L"Logger::Logger using endpoint: " + m_filename);
     } else {
         this->enabled = false;
     }
@@ -121,17 +117,25 @@ void Logger::write(const std::wstring& message, Logger::Level level)
         ::OutputDebugString(L"\n");
 #endif /* DEBUGGER */
 
-        if (m_filename != L"") {
-            std::wofstream fs;
-            fs.open(m_filename, std::ios::out | std::ios::app);
-#ifdef LOGGER_TIMESTAMP
-            timestamp(fs);
-#endif // LOGGER_TIMESTAMP
-            if (level == Logger::ERR) {
-                fs << L"[ERROR] ";
+        if (m_filename != L"" && m_userlogfile != L"") {
+            std::wofstream fs1;
+            std::wofstream fs2;
+            fs1.open(m_filename, std::ios::out | std::ios::app);
+            fs2.open(m_userlogfile, std::ios::out | std::ios::app);
+            #ifdef LOGGER_TIMESTAMP
+                timestamp(fs1);
+                timestamp(fs2);
+            #endif // LOGGER_TIMESTAMP
+            if (level != Logger::LOG) {
+                if (level == Logger::ERR) {
+                    fs1 << L"[ERROR] ";
+                }
+                fs1 << message << std::endl << std::flush;
+                fs1.close();
+            } else {
+                fs2 << message << std::endl << std::flush;
+                fs2.close();
             }
-            fs << message << std::endl << std::flush;
-            fs.close();
         }
     }
 }

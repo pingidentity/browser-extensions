@@ -67,7 +67,7 @@ STDMETHODIMP CNativeExtensions::InterfaceSupportsErrorInfo(REFIID riid)
 STDMETHODIMP CNativeExtensions::log(BSTR uuid, BSTR message)
 {
     if (_AtlModule.moduleManifest->logging.console) {
-        logger->debug(L"[" + wstring(uuid) + L"] " + wstring(message));
+        logger->log(L"[" + wstring(uuid) + L"] " + wstring(message));
     } 
     return S_OK;
 }

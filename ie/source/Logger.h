@@ -14,10 +14,11 @@ class Logger {
         WARN,
         INFO,
         DBG,
+        LOG,
         ALL
     };
     
-    Logger(Level level, const std::wstring& filename = L"");
+    Logger(Level level, const std::wstring& filename = L"", const std::wstring& userlogfile = L"");
     
     void initialize(const boost::filesystem::wpath& path);
 
@@ -39,6 +40,10 @@ class Logger {
         write(message, Logger::DBG);
         return message;
     }
+    std::wstring log(const std::wstring& message) {
+        write(message, Logger::LOG);
+        return message;
+    }
 
     // handy type parsers
     std::wstring parse(HRESULT hr);
@@ -58,6 +63,7 @@ class Logger {
  private:
     void write(const std::wstring& message, Level level = Logger::DBG);
     std::wstring m_filename;
+    std::wstring m_userlogfile;
     Level m_level;
 #ifdef LOGGER_TIMESTAMP
     double m_dAdjustment;
