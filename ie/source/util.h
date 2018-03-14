@@ -78,12 +78,14 @@ static wstring wstring_limit(const wstring& s, size_t maxlen = 160) {
 
 static wstring wstring_mask_password(const wstring& key, const wstring& value) {
 	// mask sensitive information
-	wstring maskedValue = L"";
+	wstring maskedValue = L"null";
 	wstring::size_type isPasskey = key.find(L"passkey");
 	wstring::size_type isAccessToken = key.find(L"access_token");
 	if (isPasskey != wstring::npos || isAccessToken != wstring::npos)
 	{
-		maskedValue = wstring_limit(value, 4);
+		if (value != L"null"){
+			maskedValue = L"********";
+		}
 	}
 	else {
 		maskedValue = wstring_limit(value);
