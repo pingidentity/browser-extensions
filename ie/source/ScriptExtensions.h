@@ -90,6 +90,7 @@ class Manifest {
         logger->info(L"  logging.level: " + logging.level);
         logger->info(L"  logging.console: " + boost::lexical_cast<wstring>(logging.console));
         logger->info(L"  logging.filename: " + boost::lexical_cast<wstring>(logging.filename));
+        logger->info(L"  logging.userlogfile: " + boost::lexical_cast<wstring>(logging.userlogfile));
     };
 };
 
