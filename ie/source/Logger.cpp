@@ -122,17 +122,19 @@ void Logger::write(const std::wstring& message, Logger::Level level)
             std::wofstream fs2;
             fs1.open(m_filename, std::ios::out | std::ios::app);
             fs2.open(m_userlogfile, std::ios::out | std::ios::app);
-            #ifdef LOGGER_TIMESTAMP
-                timestamp(fs1);
-                timestamp(fs2);
-            #endif // LOGGER_TIMESTAMP
             if (level != Logger::LOG) {
+                #ifdef LOGGER_TIMESTAMP
+                    timestamp(fs1);
+                #endif // LOGGER_TIMESTAMP
                 if (level == Logger::ERR) {
                     fs1 << L"[ERROR] ";
                 }
                 fs1 << message << std::endl << std::flush;
                 fs1.close();
             } else {
+                #ifdef LOGGER_TIMESTAMP
+                    timestamp(fs2);
+                #endif // LOGGER_TIMESTAMP
                 fs2 << message << std::endl << std::flush;
                 fs2.close();
             }
