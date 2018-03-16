@@ -20,7 +20,8 @@ class Logger {
         ALL
     };
     
-    Logger(Level level, const std::wstring& filename = L"", const std::wstring& bgfilename = L"", const std::wstring& fgfilename = L"");
+    Logger(Level level, const std::wstring& filename = L"", const std::wstring& bgfilename = L"",
+                        const std::wstring& fgfilename = L"", const std::wstring& sysfilename = L"");
     
     void initialize(const boost::filesystem::wpath& path);
 
