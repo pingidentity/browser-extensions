@@ -14,11 +14,12 @@ class Logger {
         WARN,
         INFO,
         DBG,
-        LOG,
+        BG,
+        FG,
         ALL
     };
     
-    Logger(Level level, const std::wstring& filename = L"", const std::wstring& userlogfile = L"");
+    Logger(Level level, const std::wstring& filename = L"", const std::wstring& bgfilename = L"", const std::wstring& fgfilename = L"");
     
     void initialize(const boost::filesystem::wpath& path);
 
@@ -40,8 +41,12 @@ class Logger {
         write(message, Logger::DBG);
         return message;
     }
-    std::wstring log(const std::wstring& message) {
-        write(message, Logger::LOG);
+    std::wstring logBackground(const std::wstring& message) {
+        write(message, Logger::BG);
+        return message;
+    }
+    std::wstring logForeground(const std::wstring& message) {
+        write(message, Logger::FG);
         return message;
     }
 
@@ -63,7 +68,8 @@ class Logger {
  private:
     void write(const std::wstring& message, Level level = Logger::DBG);
     std::wstring m_filename;
-    std::wstring m_userlogfile;
+    std::wstring m_bgfilename;
+    std::wstring m_fgfilename;
     Level m_level;
 #ifdef LOGGER_TIMESTAMP
     double m_dAdjustment;

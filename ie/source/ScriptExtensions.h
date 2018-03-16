@@ -37,7 +37,8 @@ class Manifest {
         wstring level;
         bool console;
         wstring filename;
-        wstring userlogfile;
+        wstring bgfilename;
+        wstring fgfilename;
     };
 
     wstring name;
@@ -91,7 +92,8 @@ class Manifest {
         logger->info(L"  logging.level: " + logging.level);
         logger->info(L"  logging.console: " + boost::lexical_cast<wstring>(logging.console));
         logger->info(L"  logging.filename: " + boost::lexical_cast<wstring>(logging.filename));
-        logger->info(L"  logging.userlogfile: " + boost::lexical_cast<wstring>(logging.userlogfile));
+        logger->info(L"  logging.bgfilename: " + boost::lexical_cast<wstring>(logging.bgfilename));
+        logger->info(L"  logging.fgfilename: " + boost::lexical_cast<wstring>(logging.fgfilename));
     };
 };
 

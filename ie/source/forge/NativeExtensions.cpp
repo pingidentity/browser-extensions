@@ -57,18 +57,31 @@ STDMETHODIMP CNativeExtensions::InterfaceSupportsErrorInfo(REFIID riid)
     return S_FALSE;
 }
 
-
 /**
- * Method: NativeExtensions::log
+ * Method: NativeExtensions::logBackGround
  * 
  * @param uuid 
  * @param message
  */
-STDMETHODIMP CNativeExtensions::log(BSTR uuid, BSTR message)
+STDMETHODIMP CNativeExtensions::logBackground(BSTR uuid, BSTR message)
 {
     if (_AtlModule.moduleManifest->logging.console) {
-        logger->log(L"[" + wstring(uuid) + L"] " + wstring(message));
+        logger->logBackground(L"[" + wstring(uuid) + L"] " + wstring(message));
     } 
+    return S_OK;
+}
+
+/**
+ * Method: NativeExtensions::logForeground
+ *
+ * @param uuid
+ * @param message
+ */
+STDMETHODIMP CNativeExtensions::logForeground(BSTR uuid, BSTR message)
+{
+    if (_AtlModule.moduleManifest->logging.console) {
+        logger->logForeground(L"[" + wstring(uuid) + L"] " + wstring(message));
+    }
     return S_OK;
 }
 

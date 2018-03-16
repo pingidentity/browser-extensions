@@ -50,8 +50,9 @@ DECLARE_PROTECT_FINAL_CONSTRUCT()
 
  public:
     // INativeExtensions 
-    STDMETHOD(log)          (BSTR uuid, BSTR message);
-    STDMETHOD(prefs_get)    (BSTR uuid, BSTR name, 
+    STDMETHOD(logBackground)(BSTR uuid, BSTR message);
+    STDMETHOD(logForeground)(BSTR uuid, BSTR message);
+    STDMETHOD(prefs_get)    (BSTR uuid, BSTR name,
                              IDispatch *success, IDispatch *error);
     STDMETHOD(prefs_set)    (BSTR uuid, BSTR name, BSTR value, 
                              IDispatch *success, IDispatch *error);
