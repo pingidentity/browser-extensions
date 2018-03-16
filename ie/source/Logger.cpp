@@ -104,7 +104,7 @@ void Logger::write(const std::wstring& message, Logger::Level level)
                 #ifdef LOGGER_TIMESTAMP
                     timestamp(fs);
                 #endif // LOGGER_TIMESTAMP
-                if (fs == Logger::ERR) {
+                if (level == Logger::ERR) {
                     fs << L"[ERROR] ";
                 }
                 fs << message << std::endl << std::flush;
