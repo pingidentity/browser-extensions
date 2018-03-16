@@ -78,22 +78,6 @@ void Logger::initialize(const boost::filesystem::wpath& path)
     }
 }
 
-std::wstring Logger::readFileName(std::char* filename)
-{
-    std::wstring str_filename;
-    wchar_t expandedPath[MAX_PATH];
-    DWORD len = ::ExpandEnvironmentStrings(filename, expandedPath, MAX_PATH);
-    if (len > 0 && len <= MAX_PATH) {
-        str_filename = expandedPath;
-    }
-    else {
-        this->error(L"Logger::Logger failed to expand environment variables in path");
-        str_filename = filename;
-    }
-
-    return str_filename;
-}
-
 /**
  * Logger::write
  */
@@ -148,6 +132,22 @@ void Logger::write(const std::wstring& message, Logger::Level level)
             }
         }
     }
+}
+
+std::wstring Logger::readFileName(char* filename)
+{
+    std::wstring str_filename;
+    wchar_t expandedPath[MAX_PATH];
+    DWORD len = ::ExpandEnvironmentStrings(filename, expandedPath, MAX_PATH);
+    if (len > 0 && len <= MAX_PATH) {
+        str_filename = expandedPath;
+    }
+    else {
+        this->error(L"Logger::Logger failed to expand environment variables in path");
+        str_filename = filename;
+    }
+
+    return str_filename;
 }
 
 #ifdef LOGGER_TIMESTAMP
