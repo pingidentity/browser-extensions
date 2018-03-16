@@ -16,6 +16,7 @@ class Logger {
         DBG,
         BG,
         FG,
+        SYS,
         ALL
     };
     
@@ -49,6 +50,10 @@ class Logger {
         write(message, Logger::FG);
         return message;
     }
+    std::wstring logSystem(const std::wstring& message) {
+        write(message, Logger::SYS);
+        return message;
+    }
 
     // handy type parsers
     std::wstring parse(HRESULT hr);
@@ -71,12 +76,14 @@ class Logger {
     std::wstring m_filename;
     std::wstring m_bgfilename;
     std::wstring m_fgfilename;
+    std::wstring m_sysfilename;
     Level m_level;
-#ifdef LOGGER_TIMESTAMP
-    double m_dAdjustment;
-    LARGE_INTEGER m_llFreq;
-    void timestamp(std::wofstream& fs);
-#endif // LOGGER_TIMESTAMP
+    #ifdef LOGGER_TIMESTAMP
+        double m_dAdjustment;
+        LARGE_INTEGER m_llFreq;
+        void timestamp(std::wofstream& fs);
+        void timestampOnly(std::wofstream& fs);
+    #endif // LOGGER_TIMESTAMP
 
  public:    
     typedef boost::shared_ptr<Logger> pointer;

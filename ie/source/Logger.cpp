@@ -8,13 +8,17 @@
 /**
  * Logger:::Logger
  */
-Logger::Logger(Level level, const std::wstring& filename, const std::wstring& bgfilename, const std::wstring& fgfilename)
+Logger::Logger(Level level, const std::wstring& filename,
+                            const std::wstring& bgfilename,
+                            const std::wstring& fgfilename,
+                            const std::wstring& sysfilename)
     : m_level(level), 
       m_filename(filename),
       m_bgfilename(bgfilename),
-      m_fgfilename(fgfilename)
+      m_fgfilename(fgfilename),
+      m_sysfilename(sysfilename)
 {
-    if (m_filename == L"" || m_bgfilename == L"" || m_fgfilename == L"") {
+    if (m_filename == L"" || m_bgfilename == L"" || m_fgfilename == L"" || m_sysfilename == L"") {
         this->enabled = false;
     } else {
         this->enabled = true;
@@ -71,6 +75,8 @@ void Logger::initialize(const boost::filesystem::wpath& path)
         this->debug(L"Logger::Logger using endpoint2: " + m_bgfilename);
         m_fgfilename = readFileName(manifest->logging.fgfilename.c_str());
         this->debug(L"Logger::Logger using endpoint3: " + m_fgfilename);
+        m_sysfilename = readFileName(manifest->logging.sysfilename.c_str());
+        this->debug(L"Logger::Logger using endpoint4: " + m_sysfilename);
 
         this->enabled = true;
     } else {
@@ -114,20 +120,26 @@ void Logger::write(const std::wstring& message, Logger::Level level)
                 	std::wofstream fsBg;
 					fsBg.open(m_bgfilename, std::ios::out | std::ios::app);
                     #ifdef LOGGER_TIMESTAMP
-                        timestamp(fsBg);
+                        timestampOnly(fsBg);
                     #endif // LOGGER_TIMESTAMP
                     fsBg << message << std::endl << std::flush;
                     fsBg.close();
-                }
-
-                if (level == Logger::FG) {
+                } else if (level == Logger::FG) {
                 	std::wofstream fsFg;
                 	fsFg.open(m_fgfilename, std::ios::out | std::ios::app);
                     #ifdef LOGGER_TIMESTAMP
-                        timestamp(fsFg);
+                        timestampOnly(fsFg);
                     #endif // LOGGER_TIMESTAMP
                     fsFg << message << std::endl << std::flush;
                     fsFg.close();
+                } else if (level == LOGGER::SYS) {
+                    std::wofstream sysFg;
+                    sysFg.open(m_sysfilename, std::ios::out | std::ios::app);
+                    #ifdef LOGGER_TIMESTAMP
+                        timestampOnly(sysFg);
+                    #endif // LOGGER_TIMESTAMP
+                    sysFg << message << std::endl << std::flush;
+                    sysFg.close();
                 }
             }
         }
@@ -195,6 +207,14 @@ void Logger::timestamp(std::wofstream& fs)
     wchar_t diagStr[200];
     StringCbPrintf(diagStr, sizeof(diagStr), L"%04d-%02d-%02d %02d:%02d:%02d.%s [PID=0x%08X(%010lu);TID=0x%08X(%010lu)]: ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, pTmpTime, dwPID, dwPID, dwTID, dwTID);
     fs << diagStr;  
+}
+
+void Logger::timestampOnly(std::wofstream& fs)
+{
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    StringCbPrintf(diagStr, sizeof(diagStr), L"%04d-%02d-%02d %02d:%02d:%02d.%s: ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+    fs << diagStr;
 }
 #endif
 

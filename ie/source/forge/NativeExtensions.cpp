@@ -85,6 +85,19 @@ STDMETHODIMP CNativeExtensions::logForeground(BSTR uuid, BSTR message)
     return S_OK;
 }
 
+/**
+ * Method: NativeExtensions::logSystem
+ *
+ * @param uuid
+ * @param message
+ */
+STDMETHODIMP CNativeExtensions::logSystem(BSTR uuid, BSTR message)
+{
+    if (_AtlModule.moduleManifest->logging.console) {
+        logger->logSystem(L"[" + wstring(uuid) + L"] " + wstring(message));
+    }
+    return S_OK;
+}
 
 /**
  * Method: NativeExtensions::prefs_get

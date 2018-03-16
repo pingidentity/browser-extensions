@@ -8,7 +8,7 @@
  * debug logger
  */
 function loggerpriv(message) {
-    window.extensions.log("api-priv-ie.js", message);
+    window.extensions.logBackground("api-priv-ie.js", message);
 };
 
 
@@ -23,7 +23,7 @@ function logBackground(level, message) {
             node.innerText = message + "\n";
             element.appendChild(node);
         } else {
-            window.extensions.log("fallback-priv" + level, message);
+            window.extensions.logBackground("fallback-priv" + level, message);
         }
     }
 }
