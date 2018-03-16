@@ -67,7 +67,7 @@ class Logger {
 
  private:
     void write(const std::wstring& message, Level level = Logger::DBG);
-    std::wstring Logger::readFileName(char* filename);
+    std::wstring Logger::readFileName(const wchar_t* filename);
     std::wstring m_filename;
     std::wstring m_bgfilename;
     std::wstring m_fgfilename;

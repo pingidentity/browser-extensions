@@ -134,7 +134,7 @@ void Logger::write(const std::wstring& message, Logger::Level level)
     }
 }
 
-std::wstring Logger::readFileName(char* filename)
+std::wstring Logger::readFileName(const wchar_t* filename)
 {
     std::wstring str_filename;
     wchar_t expandedPath[MAX_PATH];
