@@ -130,7 +130,7 @@ void Logger::write(const std::wstring& message, Logger::Level level)
                     #endif // LOGGER_TIMESTAMP
                     fsFg << message << std::endl << std::flush;
                     fsFg.close();
-                } else if (level == LOGGER::SYS) {
+                } else if (level == Logger::SYS) {
                     std::wofstream sysFg;
                     sysFg.open(m_sysfilename, std::ios::out | std::ios::app);
                     #ifdef LOGGER_TIMESTAMP
@@ -211,6 +211,7 @@ void Logger::timestampOnly(std::wofstream& fs)
 {
     SYSTEMTIME st;
     GetLocalTime(&st);
+    wchar_t diagStr[200];
     StringCbPrintf(diagStr, sizeof(diagStr), L"%04d-%02d-%02d %02d:%02d:%02d.%s: ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
     fs << diagStr;
 }
