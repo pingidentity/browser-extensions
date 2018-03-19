@@ -21,7 +21,8 @@ class Logger {
     };
     
     Logger(Level level, const std::wstring& filename = L"", const std::wstring& bgfilename = L"",
-                        const std::wstring& fgfilename = L"", const std::wstring& sysfilename = L"");
+                        const std::wstring& fgfilename = L"", const std::wstring& sysfilename = L"",
+                        const std::wstring& tablogfolder = L"");
     
     void initialize(const boost::filesystem::wpath& path);
 
@@ -83,6 +84,7 @@ class Logger {
     std::wstring m_bgfilename;
     std::wstring m_fgfilename;
     std::wstring m_sysfilename;
+    std::wstring m_tablogfolder;
     Level m_level;
     #ifdef LOGGER_TIMESTAMP
         double m_dAdjustment;

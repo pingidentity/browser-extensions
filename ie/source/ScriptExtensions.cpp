@@ -182,7 +182,8 @@ Manifest::pointer ScriptExtensions::ParseManifest(const bfs::wpath& path)
         json_util::wfind_str(logging, L"filename"),
         json_util::wfind_str(logging, L"bgfilename"),
         json_util::wfind_str(logging, L"fgfilename"),
-        json_util::wfind_str(logging, L"sysfilename")
+        json_util::wfind_str(logging, L"sysfilename"),
+        json_util::wfind_str(logging, L"tablogfolder")
     };
     manifest.logging = _logging;
 

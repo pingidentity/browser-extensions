@@ -96,6 +96,7 @@ class Manifest {
         logger->info(L"  logging.bgfilename: " + boost::lexical_cast<wstring>(logging.bgfilename));
         logger->info(L"  logging.fgfilename: " + boost::lexical_cast<wstring>(logging.fgfilename));
         logger->info(L"  logging.sysfilename: " + boost::lexical_cast<wstring>(logging.sysfilename));
+        logger->info(L"  logging.tablogfolder: " + boost::lexical_cast<wstring>(logging.tablogfolder));
     };
 };
 
