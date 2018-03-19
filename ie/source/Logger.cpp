@@ -165,7 +165,7 @@ void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId
         logger->debug(m_tablogfolder + L"\\extension-" + onTabId + L".log");
     }
     catch (const std::exception& e) {
-        logger->debug(e);
+        logger->debug("exception");
     }
 }
 
