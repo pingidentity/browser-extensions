@@ -10,7 +10,7 @@
  */
 Logger::Logger(Level level, const std::wstring& filename, const std::wstring& bgfilename,
                             const std::wstring& fgfilename, const std::wstring& sysfilename,
-                            const std::wstring& tablogfolder = L"")
+                            const std::wstring& tablogfolder)
     : m_level(level), 
       m_filename(filename),
       m_bgfilename(bgfilename),
