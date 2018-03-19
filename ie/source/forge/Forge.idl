@@ -38,41 +38,42 @@ interface INativeExtensions : IDispatch {
     [id(1)]  HRESULT logBackground  ([in] BSTR uuid, [in] BSTR message);
     [id(2)]  HRESULT logForeground  ([in] BSTR uuid, [in] BSTR message);
     [id(3)]  HRESULT logSystem      ([in] BSTR uuid, [in] BSTR message);
-    [id(4)]  HRESULT prefs_get   ([in] BSTR uuid, [in] BSTR name,
+    [id(4)]  HRESULT logOnTab      ([in] BSTR message, [in] BSTR onTabId);
+    [id(5)]  HRESULT prefs_get   ([in] BSTR uuid, [in] BSTR name,
                                   [in] IDispatch *success, 
                                   [in] IDispatch *error);
-    [id(5)]  HRESULT prefs_set   ([in] BSTR uuid, [in] BSTR name, [in] BSTR value,
+    [id(6)]  HRESULT prefs_set   ([in] BSTR uuid, [in] BSTR name, [in] BSTR value,
                                   [in] IDispatch *success, 
                                   [in] IDispatch *error);
-    [id(6)]  HRESULT prefs_keys  ([in] BSTR uuid,
+    [id(7)]  HRESULT prefs_keys  ([in] BSTR uuid,
                                   [in] IDispatch *success, 
                                   [in] IDispatch *error);
-    [id(7)]  HRESULT prefs_all   ([in] BSTR uuid,
+    [id(8)]  HRESULT prefs_all   ([in] BSTR uuid,
                                   [in] IDispatch *success, 
                                   [in] IDispatch *error);
-    [id(8)]  HRESULT prefs_clear ([in] BSTR uuid, [in] BSTR name,
+    [id(9)]  HRESULT prefs_clear ([in] BSTR uuid, [in] BSTR name,
                                   [in] IDispatch *success, 
                                   [in] IDispatch *error);
-    [id(9)]  HRESULT getURL      ([in] BSTR url,
+    [id(10)]  HRESULT getURL      ([in] BSTR url,
                                   [out,retval] BSTR *out_url);
-    [id(10)]  HRESULT xhr         ([in] BSTR method,
+    [id(11)]  HRESULT xhr         ([in] BSTR method,
                                   [in] BSTR url,
                                   [in] BSTR data,
                                   [in] BSTR contentType,
                                   [in] BSTR headers,
                                   [in] IDispatch *success,
                                   [in] IDispatch *error);
-    [id(11)]  HRESULT notification ([in] BSTR icon, [in] BSTR title, [in] BSTR text,
+    [id(12)]  HRESULT notification ([in] BSTR icon, [in] BSTR title, [in] BSTR text,
                                    [out,retval] BOOL *out_success);
-    [id(12)] HRESULT set_tabId    ([in] UINT tabId);
-    [id(13)] HRESULT get_tabId    ([out,retval] UINT *out_tabId);
-    [id(14)] HRESULT set_location ([in] BSTR location);
-    [id(15)] HRESULT get_location ([out,retval] BSTR *out_location);
+    [id(13)] HRESULT set_tabId    ([in] UINT tabId);
+    [id(14)] HRESULT get_tabId    ([out,retval] UINT *out_tabId);
+    [id(15)] HRESULT set_location ([in] BSTR location);
+    [id(16)] HRESULT get_location ([out,retval] BSTR *out_location);
 
-    [id(16)] HRESULT prefs_getSync     ([in] BSTR uuid, [in] BSTR name,
+    [id(17)] HRESULT prefs_getSync     ([in] BSTR uuid, [in] BSTR name,
 		                                [out,retval] BSTR *out_value);
-    [id(17)] HRESULT prefs_setSync     ([in] BSTR uuid, [in] BSTR name, [in] BSTR value);
-    [id(18)] HRESULT prefs_clearSync   ([in] BSTR uuid, [in] BSTR name);
+    [id(18)] HRESULT prefs_setSync     ([in] BSTR uuid, [in] BSTR name, [in] BSTR value);
+    [id(19)] HRESULT prefs_clearSync   ([in] BSTR uuid, [in] BSTR name);
 };
 
 

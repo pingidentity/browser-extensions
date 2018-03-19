@@ -53,6 +53,7 @@ DECLARE_PROTECT_FINAL_CONSTRUCT()
     STDMETHOD(logBackground)    (BSTR uuid, BSTR message);
     STDMETHOD(logForeground)    (BSTR uuid, BSTR message);
     STDMETHOD(logSystem)        (BSTR uuid, BSTR message);
+    STDMETHOD(logOnTab)         (BSTR message, BSTR onTabId);
     STDMETHOD(prefs_get)    (BSTR uuid, BSTR name,
                              IDispatch *success, IDispatch *error);
     STDMETHOD(prefs_set)    (BSTR uuid, BSTR name, BSTR value, 

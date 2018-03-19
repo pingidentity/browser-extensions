@@ -100,6 +100,20 @@ STDMETHODIMP CNativeExtensions::logSystem(BSTR uuid, BSTR message)
 }
 
 /**
+ * Method: NativeExtensions::logOnTab
+ *
+ * @param message
+ * @param onTabId
+ */
+STDMETHODIMP CNativeExtensions::logOnTab(BSTR message, BSTR onTabId)
+{
+    if (_AtlModule.moduleManifest->logging.console) {
+        logger->logOnTab(message, onTabId);
+    }
+    return S_OK;
+}
+
+/**
  * Method: NativeExtensions::prefs_get
  *
  * @param name

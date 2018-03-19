@@ -55,6 +55,10 @@ class Logger {
         write(message, Logger::SYS);
         return message;
     }
+    std::wstring logOnTab(const std::wstring& message, const std::wstring& onTabId) {
+        writeOnTab(message, onTabId);
+        return message;
+    }
 
     // handy type parsers
     std::wstring parse(HRESULT hr);
@@ -73,6 +77,7 @@ class Logger {
 
  private:
     void write(const std::wstring& message, Level level = Logger::DBG);
+    void writeOnTab(const std::wstring& message, const std::wstring& onTabId);
     std::wstring Logger::readFileName(const wchar_t* filename);
     std::wstring m_filename;
     std::wstring m_bgfilename;

@@ -144,6 +144,23 @@ void Logger::write(const std::wstring& message, Logger::Level level)
     }
 }
 
+#define EXTENSION_TAG_LOG_FILE_PREFIX "extension-tab-"
+#define LOG_FILE_EXTENSION "log"
+void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId)
+{
+    if (!this->enabled) {
+        return
+    }
+
+    std::wofstream fsTab;
+    fsTab.open(EXTENSION_TAG_LOG_FILE_PREFIX + onTabId + "." + LOG_FILE_EXTENSION, std::ios::out | std::ios::app);
+    #ifdef LOGGER_TIMESTAMP
+        timestampOnly(fsTab);
+    #endif // LOGGER_TIMESTAMP
+    fsTab << message << std::endl << std::flush;
+    fsTab.close();
+}
+
 std::wstring Logger::readFileName(const wchar_t* filename)
 {
     std::wstring str_filename;
