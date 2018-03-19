@@ -38,7 +38,7 @@ interface INativeExtensions : IDispatch {
     [id(1)]  HRESULT logBackground  ([in] BSTR uuid, [in] BSTR message);
     [id(2)]  HRESULT logForeground  ([in] BSTR uuid, [in] BSTR message);
     [id(3)]  HRESULT logSystem      ([in] BSTR uuid, [in] BSTR message);
-    [id(4)]  HRESULT logOnTab      ([in] BSTR message, [in] BSTR onTabId);
+    [id(4)]  HRESULT logOnTab       ([in] BSTR message, [in] BSTR onTabId);
     [id(5)]  HRESULT prefs_get   ([in] BSTR uuid, [in] BSTR name,
                                   [in] IDispatch *success, 
                                   [in] IDispatch *error);
