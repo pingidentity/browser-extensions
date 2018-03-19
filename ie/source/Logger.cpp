@@ -68,13 +68,13 @@ void Logger::initialize(const boost::filesystem::wpath& path)
         // Replace environment variables in path so %LOCALAPPDATA%Low can be
         // used which is the only place where the low priviledged BHO process
         // can create files.
-        m_filename = readFileName(manifest->logging.filename.c_str());
+        m_filename = readPath(manifest->logging.filename.c_str());
         this->debug(L"Logger::Logger using endpoint1: " + m_filename);
-        m_bgfilename = readFileName(manifest->logging.bgfilename.c_str());
+        m_bgfilename = readPath(manifest->logging.bgfilename.c_str());
         this->debug(L"Logger::Logger using endpoint2: " + m_bgfilename);
-        m_fgfilename = readFileName(manifest->logging.fgfilename.c_str());
+        m_fgfilename = readPath(manifest->logging.fgfilename.c_str());
         this->debug(L"Logger::Logger using endpoint3: " + m_fgfilename);
-        m_sysfilename = readFileName(manifest->logging.sysfilename.c_str());
+        m_sysfilename = readPath(manifest->logging.sysfilename.c_str());
         this->debug(L"Logger::Logger using endpoint4: " + m_sysfilename);
         this->enabled = true;
     } else {
@@ -159,20 +159,20 @@ void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId
     fsTab.close();
 }
 
-std::wstring Logger::readFileName(const wchar_t* filename)
+std::wstring Logger::readPath(const wchar_t* pathname)
 {
-    std::wstring str_filename;
+    std::wstring str_pathname;
     wchar_t expandedPath[MAX_PATH];
-    DWORD len = ::ExpandEnvironmentStrings(filename, expandedPath, MAX_PATH);
+    DWORD len = ::ExpandEnvironmentStrings(pathname, expandedPath, MAX_PATH);
     if (len > 0 && len <= MAX_PATH) {
-        str_filename = expandedPath;
+        str_pathname = expandedPath;
     }
     else {
         this->error(L"Logger::Logger failed to expand environment variables in path");
-        str_filename = filename;
+        str_pathname = pathname;
     }
 
-    return str_filename;
+    return str_pathname;
 }
 
 #ifdef LOGGER_TIMESTAMP
