@@ -155,7 +155,8 @@ void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId
     }
 
     std::wofstream fsTab;
-    fsTab.open(m_tablogfolder + L"\\extension-" + onTabId + L".log", std::ios::out | std::ios::app);
+    logger->debug(m_tablogfolder + L"\\extension-" + onTabId + L".log");
+    fsTab.open(m_tablogfolder + L"\\extension-xyz.log", std::ios::out | std::ios::app);
     #ifdef LOGGER_TIMESTAMP
         timestampOnly(fsTab);
     #endif // LOGGER_TIMESTAMP
