@@ -100,7 +100,7 @@ void Logger::write(const std::wstring& message, Logger::Level level)
         ::OutputDebugString(L"\n");
         #endif /* DEBUGGER */
 
-        if (m_filename != L"" && m_bgfilename != L"" && m_fgfilename != L"" && m_sysfilename) {
+        if (m_filename != L"" && m_bgfilename != L"" && m_fgfilename != L"" && m_sysfilename != L"") {
             if (level != Logger::BG && level != Logger::FG && level != Logger::SYS) {
             	std::wofstream fs;
 				fs.open(m_filename, std::ios::out | std::ios::app);
