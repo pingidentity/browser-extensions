@@ -67,7 +67,7 @@ void Logger::initialize(const boost::filesystem::wpath& path)
         this->enabled = false;
     } else if (manifest->logging.filename != L"" && manifest->logging.bgfilename != L"" &&
                manifest->logging.fgfilename != L"" && manifest->logging.sysfilename != L"" &&
-               manifest->logging.tablogfolder) {
+               manifest->logging.tablogfolder != L"") {
         // Replace environment variables in path so %LOCALAPPDATA%Low can be
         // used which is the only place where the low priviledged BHO process
         // can create files.

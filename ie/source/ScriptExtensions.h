@@ -40,6 +40,7 @@ class Manifest {
         wstring bgfilename;
         wstring fgfilename;
         wstring sysfilename;
+        wstring tablogfolder;
     };
 
     wstring name;
