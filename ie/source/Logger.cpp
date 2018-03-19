@@ -147,7 +147,7 @@ void Logger::write(const std::wstring& message, Logger::Level level)
 void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId)
 {
     if (!this->enabled) {
-        return
+        return;
     }
 
     std::wofstream fsTab;
