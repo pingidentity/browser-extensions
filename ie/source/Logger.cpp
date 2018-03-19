@@ -162,10 +162,10 @@ void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId
         #endif // LOGGER_TIMESTAMP
         fsTab << message << std::endl << std::flush;
         fsTab.close();
-        logger->debug(m_tablogfolder + L"\\extension-" + onTabId + L".log");
+        this->debug(m_tablogfolder + L"\\extension-" + onTabId + L".log");
     }
     catch (const std::exception& e) {
-        logger->debug("exception");
+        this->debug("exception");
     }
 }
 
