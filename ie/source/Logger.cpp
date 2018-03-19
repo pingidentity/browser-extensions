@@ -76,6 +76,7 @@ void Logger::initialize(const boost::filesystem::wpath& path)
         this->debug(L"Logger::Logger using endpoint3: " + m_fgfilename);
         m_sysfilename = readFileName(manifest->logging.sysfilename.c_str());
         this->debug(L"Logger::Logger using endpoint4: " + m_sysfilename);
+        this->enabled = true;
     } else {
         this->enabled = false;
     }
