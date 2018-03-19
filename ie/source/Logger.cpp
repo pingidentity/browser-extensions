@@ -63,7 +63,8 @@ void Logger::initialize(const boost::filesystem::wpath& path)
     if (!manifest) {
         this->debug(L"Logger::Logger could not read manifest");
         this->enabled = false;
-    } else if (manifest->logging.filename != L"" && manifest->logging.bgfilename != L"" && manifest->logging.fgfilename != L"") {
+    } else if (manifest->logging.filename != L"" && manifest->logging.bgfilename != L"" &&
+               manifest->logging.fgfilename != L"" && manifest->logging.sysfilename != L"") {
         // Replace environment variables in path so %LOCALAPPDATA%Low can be
         // used which is the only place where the low priviledged BHO process
         // can create files.
@@ -75,8 +76,6 @@ void Logger::initialize(const boost::filesystem::wpath& path)
         this->debug(L"Logger::Logger using endpoint3: " + m_fgfilename);
         m_sysfilename = readFileName(manifest->logging.sysfilename.c_str());
         this->debug(L"Logger::Logger using endpoint4: " + m_sysfilename);
-
-        this->enabled = true;
     } else {
         this->enabled = false;
     }
@@ -101,7 +100,7 @@ void Logger::write(const std::wstring& message, Logger::Level level)
         ::OutputDebugString(L"\n");
         #endif /* DEBUGGER */
 
-        if (m_filename != L"" && m_bgfilename != L"" && m_fgfilename != L"") {
+        if (m_filename != L"" && m_bgfilename != L"" && m_fgfilename != L"" && m_sysfilename) {
             if (level != Logger::BG && level != Logger::FG && level != Logger::SYS) {
             	std::wofstream fs;
 				fs.open(m_filename, std::ios::out | std::ios::app);
