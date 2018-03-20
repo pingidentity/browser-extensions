@@ -165,7 +165,7 @@ void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId
             fsTab.close();
         }
         catch (const std::exception& e) {
-            this->debug(e.what());
+            this->debug(std::string str(e.what()));
         }
     }
 }
