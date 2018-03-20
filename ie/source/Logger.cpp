@@ -154,18 +154,19 @@ void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId
         return;
     }
 
-    try {
-        std::wofstream fsTab;
-        fsTab.open(m_tablogfolder + L"\\extension-xyz.log", std::ios::out | std::ios::app);
-        #ifdef LOGGER_TIMESTAMP
-            timestampOnly(fsTab);
-        #endif // LOGGER_TIMESTAMP
-        fsTab << message << std::endl << std::flush;
-        fsTab.close();
-        this->debug(m_tablogfolder + L"\\extension-" + onTabId + L".log");
-    }
-    catch (const std::exception& e) {
-        this->debug(L"exception");
+    if (m_tablogfolder != L"") {
+        try {
+            std::wofstream fsTab;
+            fsTab.open(m_tablogfolder + L"\\extension-" + onTabId + ".log", std::ios::out | std::ios::app);
+            #ifdef LOGGER_TIMESTAMP
+                timestampOnly(fsTab);
+            #endif // LOGGER_TIMESTAMP
+            fsTab << message << std::endl << std::flush;
+            fsTab.close();
+        }
+        catch (const std::exception& e) {
+            this->debug(e.what());
+        }
     }
 }
 
