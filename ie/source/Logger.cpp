@@ -164,10 +164,8 @@ void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId
             fsTab << message << std::endl << std::flush;
             fsTab.close();
         }
-        catch (const std::exception& e) {
-            std::wstring exceptionMessage;
-            exceptionMessage.append(e.what());
-            this->debug(exceptionMessage);
+        catch () {
+            this->debug(L"EX: Could not write " + message + L" on tab" + onTabId);
         }
     }
 }
