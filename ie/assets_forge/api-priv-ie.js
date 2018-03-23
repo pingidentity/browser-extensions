@@ -8,7 +8,15 @@
  * debug logger
  */
 function loggerpriv(message) {
-    window.extensions.logBackground("api-priv-ie.js", message);
+    try {
+        if (forge.config.modules.parameters.filing_logs) {
+            if (window.extensions) {
+                window.extensions.logBackground("api-priv-ie.js", message);
+            }
+        }
+    }
+    catch (ex) {
+    }
 };
 
 
@@ -23,7 +31,15 @@ function logBackground(level, message) {
             node.innerText = message + "\n";
             element.appendChild(node);
         } else {
-            window.extensions.logBackground("fallback-priv" + level, message);
+            try {
+                if (forge.config.modules.parameters.filing_logs) {
+                    if (window.extensions) {
+                        window.extensions.logBackground("fallback-priv" + level, message);
+                    }
+                }
+            }
+            catch (ex) {
+            }
         }
     }
 }
