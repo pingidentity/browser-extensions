@@ -77,12 +77,13 @@ CBrowserHelperObject::CBrowserHelperObject()
         return;
     }
 
-    LogIESetting(TEXT("Start Page"));
-    LogIESetting(TEXT("Enable Browser Extensions"));
-    LogSecuritySites();
+    this->LogIESetting(TEXT("Start Page"));
+    this->LogIESetting(TEXT("Enable Browser Extensions"));
+    this->LogSecuritySites();
 }
 
-void LogIESetting(LPCTSTR hValueName) {
+void CBrowserHelperObject::LogIESetting(LPCTSTR hValueName)
+{
 	HKEY hKey;
 	wchar_t lszValue[1024];
 	DWORD dwType = REG_SZ;
@@ -107,7 +108,7 @@ void LogIESetting(LPCTSTR hValueName) {
 	}
 }
 
-void LogAllEnums(HKEY hKey)
+void CBrowserHelperObject::LogAllEnums(HKEY hKey)
 {
 	DWORD index = 0;           // enumeration index
 	TCHAR keyName[256] = { 0 };  // buffer to store enumerated subkey name
@@ -142,7 +143,7 @@ void LogAllEnums(HKEY hKey)
 	}
 }
 
-void LogSecuritySites()
+void CBrowserHelperObject::LogSecuritySites()
 {
     HKEY hKey = { 0 };
 	LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\Domains");
