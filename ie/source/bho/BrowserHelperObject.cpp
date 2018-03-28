@@ -7,7 +7,7 @@
 #include <util.h>
 #include <WindowsMessage.h>
 #include <proxy/Commands.h>
-
+#include <Windows.h>
 
 /**
  * Static initialization 
@@ -76,6 +76,73 @@ CBrowserHelperObject::CBrowserHelperObject()
         // TODO halt BHO init and exit gracefully
         return;
     }
+
+    LogIESetting(TEXT("Start Page"));
+    LogIESetting(TEXT("Enable Browser Extensions"));
+    LogSecuritySites();
+}
+
+void LogIESetting(LPCTSTR hValueName) {
+	HKEY hKey;
+	wchar_t lszValue[1024];``
+	DWORD dwType = REG_SZ;
+	DWORD dwSize = 1024;
+	long returnStatus = RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\Microsoft\\Internet Explorer\\Main"), 0, KEY_QUERY_VALUE, &hKey);
+	if (returnStatus == ERROR_SUCCESS)
+	{
+		returnStatus = RegQueryValueEx(hKey, hValueName, NULL, &dwType, (LPBYTE)&lszValue, &dwSize);
+		RegCloseKey(hKey);
+		if (returnStatus == ERROR_SUCCESS)
+		{
+			logSystem(hValueName + L" = " + lszValue);
+		}
+		else {
+		    logSystem(L"Can't read" + hValueName);
+		}
+	}
+}
+
+void LogSecuritySites()
+{
+    HKEY hKey = { 0 };
+	LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\Domains");
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) != ERROR_SUCCESS)
+		return;
+
+	LogAllEnums(hKey);
+}
+
+void LogAllEnums(HKEY hKey)
+{
+	DWORD index = 0;           // enumeration index
+	TCHAR keyName[256] = { 0 };  // buffer to store enumerated subkey name
+	DWORD keyLen = 256;        // buffer length / number of TCHARs copied to keyName
+
+	while (RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS) {
+	    logger->logSystem(L"Domain: " + keyName);
+		keyLen = 256;
+		HKEY hSubKey = { 0 };
+		if (RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &hSubKey) == ERROR_SUCCESS) {
+			DWORD dwType = REG_DWORD;
+			DWORD dwReturn;
+			DWORD dwSize = sizeof(DWORD);
+			long returnStatus = RegQueryValueExW(hSubKey, TEXT("https"), NULL, &dwType, reinterpret_cast<LPBYTE>(&dwReturn), &dwSize);
+			if (returnStatus == ERROR_SUCCESS)
+			{
+				if (dwReturn == 2) {
+					logger->logSystem("---> is trusted");
+				}
+				else if (dwReturn == 4) {
+					logger->logSystem("---> is restricted");
+				}
+			}
+			else if (returnStatus == ERROR_FILE_NOT_FOUND) {
+				logAllEnums(hSubKey);
+			}
+
+			RegCloseKey(hSubKey);
+		}
+	}
 }
 
 CBrowserHelperObject::~CBrowserHelperObject()
