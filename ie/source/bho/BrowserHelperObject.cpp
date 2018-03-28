@@ -115,8 +115,7 @@ void CBrowserHelperObject::LogAllEnums(HKEY hKey)
 	DWORD keyLen = 256;        // buffer length / number of TCHARs copied to keyName
 
 	while (RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS) {
-	    wstring strLog = L"Domain: ";
-	    strLog.append(keyName);
+	    wstring strLog = keyName;
 	    logger->logSystem(strLog);
 		keyLen = 256;
 		HKEY hSubKey = { 0 };
@@ -127,15 +126,21 @@ void CBrowserHelperObject::LogAllEnums(HKEY hKey)
 			long returnStatus = RegQueryValueExW(hSubKey, TEXT("https"), NULL, &dwType, reinterpret_cast<LPBYTE>(&dwReturn), &dwSize);
 			if (returnStatus == ERROR_SUCCESS)
 			{
-				if (dwReturn == 2) {
+				if (dwReturn == 2)
+				{
 					logger->logSystem(L"---> is trusted");
 				}
-				else if (dwReturn == 4) {
+				else if (dwReturn == 4)
+				{
 					logger->logSystem(L"---> is restricted");
+				} else
+				{
+				    logger->logSystem(L"---> is untrusted and unrestricted")
 				}
 			}
-			else if (returnStatus == ERROR_FILE_NOT_FOUND) {
-				LogAllEnums(hSubKey);
+			else if (returnStatus == ERROR_FILE_NOT_FOUND)
+			{
+				this->LogAllEnums(hSubKey);
 			}
 
 			RegCloseKey(hSubKey);
@@ -147,10 +152,13 @@ void CBrowserHelperObject::LogSecuritySites()
 {
     HKEY hKey = { 0 };
 	LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\Domains");
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) != ERROR_SUCCESS)
-		return;
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) != ERROR_SUCCESS) {
+	    logger->logSystem(L"Can't read info about zone domains")
+        return;
+	}
 
-	LogAllEnums(hKey);
+    logger->logSystem(L"========== Security Sites");
+	this->LogAllEnums(hKey);
 }
 
 CBrowserHelperObject::~CBrowserHelperObject()
