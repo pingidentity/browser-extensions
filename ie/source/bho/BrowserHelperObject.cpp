@@ -84,7 +84,7 @@ CBrowserHelperObject::CBrowserHelperObject()
 
 void LogIESetting(LPCTSTR hValueName) {
 	HKEY hKey;
-	wchar_t lszValue[1024];``
+	wchar_t lszValue[1024];
 	DWORD dwType = REG_SZ;
 	DWORD dwSize = 1024;
 	long returnStatus = RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\Microsoft\\Internet Explorer\\Main"), 0, KEY_QUERY_VALUE, &hKey);
