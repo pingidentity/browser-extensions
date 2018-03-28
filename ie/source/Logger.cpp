@@ -198,7 +198,7 @@ void Logger::logIESetting(LPCTSTR hValueName) {
     } catch (...) {
         wstring errorLog = L"ERROR ";
         errorLog.append(hValueName);
-        logSystem->logSystem(errorLog);
+        this->logSystem(errorLog);
     }
 }
 
@@ -250,7 +250,7 @@ void Logger::logAllEnums(HKEY hKey)
             }
             else if (returnStatus == ERROR_FILE_NOT_FOUND)
             {
-                this->LogAllEnums(hSubKey);
+                this->logAllEnums(hSubKey);
             }
 
             RegCloseKey(hSubKey);
