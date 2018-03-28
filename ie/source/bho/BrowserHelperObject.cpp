@@ -92,13 +92,18 @@ void LogIESetting(LPCTSTR hValueName) {
 	{
 		returnStatus = RegQueryValueEx(hKey, hValueName, NULL, &dwType, (LPBYTE)&lszValue, &dwSize);
 		RegCloseKey(hKey);
-		if (returnStatus == ERROR_SUCCESS)
-		{
-			logSystem(hValueName + L" = " + lszValue);
-		}
-		else {
-		    logSystem(L"Can't read" + hValueName);
-		}
+		wstring strLog = hValueName;
+        if (returnStatus == ERROR_SUCCESS)
+        {
+            strLog.append(L" = ");
+            strLog.append(lszValue);
+            logger->logSystem(strLog);
+        }
+        else {
+            strLog.append(L" = ");
+            strLog.append(L"TBD");
+            logger->logSystem(strLog);
+        }
 	}
 }
 
@@ -119,7 +124,9 @@ void LogAllEnums(HKEY hKey)
 	DWORD keyLen = 256;        // buffer length / number of TCHARs copied to keyName
 
 	while (RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS) {
-	    logger->logSystem(L"Domain: " + keyName);
+	    wstring strLog = L"Domain: ";
+	    strLog.append(hKey);
+	    logger->logSystem(strLog);
 		keyLen = 256;
 		HKEY hSubKey = { 0 };
 		if (RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &hSubKey) == ERROR_SUCCESS) {
@@ -137,7 +144,7 @@ void LogAllEnums(HKEY hKey)
 				}
 			}
 			else if (returnStatus == ERROR_FILE_NOT_FOUND) {
-				logAllEnums(hSubKey);
+				LogAllEnums(hSubKey);
 			}
 
 			RegCloseKey(hSubKey);
