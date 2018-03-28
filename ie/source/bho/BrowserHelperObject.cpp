@@ -135,7 +135,7 @@ void CBrowserHelperObject::LogAllEnums(HKEY hKey)
 					logger->logSystem(L"---> is restricted");
 				} else
 				{
-				    logger->logSystem(L"---> is untrusted and unrestricted")
+				    logger->logSystem(L"---> is untrusted and unrestricted");
 				}
 			}
 			else if (returnStatus == ERROR_FILE_NOT_FOUND)
@@ -153,7 +153,7 @@ void CBrowserHelperObject::LogSecuritySites()
     HKEY hKey = { 0 };
 	LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\Domains");
 	if (RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) != ERROR_SUCCESS) {
-	    logger->logSystem(L"Can't read info about zone domains")
+	    logger->logSystem(L"Can't read info about zone domains");
         return;
 	}
 
