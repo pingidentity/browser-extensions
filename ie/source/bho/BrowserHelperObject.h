@@ -79,8 +79,8 @@ END_SINK_MAP()
 
  private:
     void LogIESetting(LPCTSTR hValueName);
-    void LogSecuritySites();
     void LogAllEnums(HKEY hKey);
+    void LogSecuritySites();
     HRESULT OnConnect(IUnknown *iunknown);
     HRESULT OnDisconnect(IUnknown *iunknown);
     HRESULT InitializeDocument(WebBrowser2Ptr webBrowser2,

@@ -107,16 +107,6 @@ void LogIESetting(LPCTSTR hValueName) {
 	}
 }
 
-void LogSecuritySites()
-{
-    HKEY hKey = { 0 };
-	LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\Domains");
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) != ERROR_SUCCESS)
-		return;
-
-	LogAllEnums(hKey);
-}
-
 void LogAllEnums(HKEY hKey)
 {
 	DWORD index = 0;           // enumeration index
@@ -125,7 +115,7 @@ void LogAllEnums(HKEY hKey)
 
 	while (RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS) {
 	    wstring strLog = L"Domain: ";
-	    strLog.append(hKey);
+	    strLog.append(keyName);
 	    logger->logSystem(strLog);
 		keyLen = 256;
 		HKEY hSubKey = { 0 };
@@ -137,10 +127,10 @@ void LogAllEnums(HKEY hKey)
 			if (returnStatus == ERROR_SUCCESS)
 			{
 				if (dwReturn == 2) {
-					logger->logSystem("---> is trusted");
+					logger->logSystem(L"---> is trusted");
 				}
 				else if (dwReturn == 4) {
-					logger->logSystem("---> is restricted");
+					logger->logSystem(L"---> is restricted");
 				}
 			}
 			else if (returnStatus == ERROR_FILE_NOT_FOUND) {
@@ -150,6 +140,16 @@ void LogAllEnums(HKEY hKey)
 			RegCloseKey(hSubKey);
 		}
 	}
+}
+
+void LogSecuritySites()
+{
+    HKEY hKey = { 0 };
+	LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\Domains");
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) != ERROR_SUCCESS)
+		return;
+
+	LogAllEnums(hKey);
 }
 
 CBrowserHelperObject::~CBrowserHelperObject()
