@@ -76,89 +76,6 @@ CBrowserHelperObject::CBrowserHelperObject()
         // TODO halt BHO init and exit gracefully
         return;
     }
-
-    this->LogIESetting(TEXT("Start Page"));
-    this->LogIESetting(TEXT("Enable Browser Extensions"));
-    this->LogSecuritySites();
-}
-
-void CBrowserHelperObject::LogIESetting(LPCTSTR hValueName)
-{
-	HKEY hKey;
-	wchar_t lszValue[1024];
-	DWORD dwType = REG_SZ;
-	DWORD dwSize = 1024;
-	long returnStatus = RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\Microsoft\\Internet Explorer\\Main"), 0, KEY_QUERY_VALUE, &hKey);
-	if (returnStatus == ERROR_SUCCESS)
-	{
-		returnStatus = RegQueryValueEx(hKey, hValueName, NULL, &dwType, (LPBYTE)&lszValue, &dwSize);
-		RegCloseKey(hKey);
-		wstring strLog = hValueName;
-        if (returnStatus == ERROR_SUCCESS)
-        {
-            strLog.append(L" = ");
-            strLog.append(lszValue);
-            logger->logSystem(strLog);
-        }
-        else {
-            strLog.append(L" = ");
-            strLog.append(L"TBD");
-            logger->logSystem(strLog);
-        }
-	}
-}
-
-void CBrowserHelperObject::LogAllEnums(HKEY hKey)
-{
-	DWORD index = 0;           // enumeration index
-	TCHAR keyName[256] = { 0 };  // buffer to store enumerated subkey name
-	DWORD keyLen = 256;        // buffer length / number of TCHARs copied to keyName
-
-	while (RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS) {
-	    wstring strLog = keyName;
-	    logger->logSystem(strLog);
-		keyLen = 256;
-		HKEY hSubKey = { 0 };
-		if (RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &hSubKey) == ERROR_SUCCESS) {
-			DWORD dwType = REG_DWORD;
-			DWORD dwReturn;
-			DWORD dwSize = sizeof(DWORD);
-			long returnStatus = RegQueryValueExW(hSubKey, TEXT("https"), NULL, &dwType, reinterpret_cast<LPBYTE>(&dwReturn), &dwSize);
-			if (returnStatus == ERROR_SUCCESS)
-			{
-				if (dwReturn == 2)
-				{
-					logger->logSystem(L"---> is trusted");
-				}
-				else if (dwReturn == 4)
-				{
-					logger->logSystem(L"---> is restricted");
-				} else
-				{
-				    logger->logSystem(L"---> is untrusted and unrestricted");
-				}
-			}
-			else if (returnStatus == ERROR_FILE_NOT_FOUND)
-			{
-				this->LogAllEnums(hSubKey);
-			}
-
-			RegCloseKey(hSubKey);
-		}
-	}
-}
-
-void CBrowserHelperObject::LogSecuritySites()
-{
-    HKEY hKey = { 0 };
-	LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\Domains");
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) != ERROR_SUCCESS) {
-	    logger->logSystem(L"Can't read info about zone domains");
-        return;
-	}
-
-    logger->logSystem(L"========== Security Sites");
-	this->LogAllEnums(hKey);
 }
 
 CBrowserHelperObject::~CBrowserHelperObject()
@@ -320,6 +237,11 @@ HRESULT CBrowserHelperObject::OnConnect(IUnknown *unknown)
     logger->debug(L"BrowserHelperObject::OnConnect done" 
                   L" -> " + _AtlModule.moduleManifest->uuid +
                   L" -> " + boost::lexical_cast<wstring>(m_instanceId));
+
+    logger->logIESetting(TEXT("Start Page"));
+    logger->logIESetting(TEXT("Enable Browser Extensions"));
+    logger->logSecuritySites();
+
     return S_OK;
 }
 

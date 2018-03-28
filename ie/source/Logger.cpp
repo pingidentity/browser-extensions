@@ -170,6 +170,94 @@ void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId
     }
 }
 
+void Logger::logIESetting(LPCTSTR hValueName) {
+    try {
+        HKEY hKey;
+        wchar_t lszValue[512];
+        DWORD dwType = REG_SZ;
+        DWORD dwSize = 512;
+        long returnStatus = RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\Microsoft\\Internet Explorer\\Main"), 0, KEY_QUERY_VALUE, &hKey);
+        if (returnStatus == ERROR_SUCCESS)
+        {
+            returnStatus = RegQueryValueEx(hKey, hValueName, NULL, &dwType, (LPBYTE)&lszValue, &dwSize);
+            wstring strLog = hValueName;
+            if (returnStatus == ERROR_SUCCESS)
+            {
+                strLog.append(L" = ");
+                strLog.append(lszValue);
+                this->logSystem(strLog);
+            }
+            else
+            {
+                strLog.append(L" = ");
+                strLog.append(L"TBD");
+                this->logSystem(strLog);
+            }
+            RegCloseKey(hKey);
+        }
+    } catch (...) {
+        wstring errorLog = L"ERROR ";
+        errorLog.append(hValueName);
+        logSystem->logSystem(errorLog);
+    }
+}
+
+void Logger::logSecuritySites() {
+    try {
+        HKEY hKey;
+        LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\Domains");
+        if (RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) != ERROR_SUCCESS) {
+            this->logSystem(L"Can't read info about zone domains");
+            return;
+        }
+
+        this->logSystem(L"========== Security Sites");
+        this->logAllEnums(hKey);
+    } catch (...) {
+        this->logSystem(L"Couldn't log security sites");
+    }
+}
+
+void Logger::logAllEnums(HKEY hKey)
+{
+    DWORD index = 0;
+    TCHAR keyName[512] = { 0 };
+    DWORD keyLen = 512;
+
+    while (RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS) {
+        wstring strLog = keyName;
+        this->logSystem(strLog);
+        keyLen = 256;
+        HKEY hSubKey = { 0 };
+        if (RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &hSubKey) == ERROR_SUCCESS) {
+            DWORD dwType = REG_DWORD;
+            DWORD dwReturn;
+            DWORD dwSize = sizeof(DWORD);
+            long returnStatus = RegQueryValueExW(hSubKey, TEXT("https"), NULL, &dwType, reinterpret_cast<LPBYTE>(&dwReturn), &dwSize);
+            if (returnStatus == ERROR_SUCCESS)
+            {
+                if (dwReturn == 2)
+                {
+                    this->logSystem(L"---> is trusted");
+                }
+                else if (dwReturn == 4)
+                {
+                    this->logSystem(L"---> is restricted");
+                } else
+                {
+                    this->logSystem(L"---> is untrusted and unrestricted");
+                }
+            }
+            else if (returnStatus == ERROR_FILE_NOT_FOUND)
+            {
+                this->LogAllEnums(hSubKey);
+            }
+
+            RegCloseKey(hSubKey);
+        }
+    }
+}
+
 std::wstring Logger::readPath(const wchar_t* pathname)
 {
     std::wstring str_pathname;

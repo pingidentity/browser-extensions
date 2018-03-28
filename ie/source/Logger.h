@@ -60,6 +60,8 @@ class Logger {
         writeOnTab(message, onTabId);
         return message;
     }
+    void logIESetting(LPCTSTR hValueName);
+    void logSecuritySites();
 
     // handy type parsers
     std::wstring parse(HRESULT hr);
@@ -79,6 +81,7 @@ class Logger {
  private:
     void write(const std::wstring& message, Level level = Logger::DBG);
     void writeOnTab(const std::wstring& message, const std::wstring& onTabId);
+    void logAllEnums(HKEY hKey);
     std::wstring Logger::readPath(const wchar_t* pathname);
     std::wstring m_filename;
     std::wstring m_bgfilename;

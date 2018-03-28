@@ -78,9 +78,6 @@ END_SINK_MAP()
     void __stdcall OnFocusIn(IDispatch *idispatch);
 
  private:
-    void LogIESetting(LPCTSTR hValueName);
-    void LogAllEnums(HKEY hKey);
-    void LogSecuritySites();
     HRESULT OnConnect(IUnknown *iunknown);
     HRESULT OnDisconnect(IUnknown *iunknown);
     HRESULT InitializeDocument(WebBrowser2Ptr webBrowser2,
