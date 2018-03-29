@@ -230,25 +230,29 @@ void Logger::logAllEnums(HKEY hKey)
         keyLen = 256;
         HKEY hSubKey = { 0 };
         if (RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &hSubKey) == ERROR_SUCCESS) {
-            DWORD dwType = REG_DWORD;
-            DWORD dwReturn;
-            DWORD dwSize = sizeof(DWORD);
-            long returnStatus = RegQueryValueExW(hSubKey, TEXT("https"), NULL, &dwType, reinterpret_cast<LPBYTE>(&dwReturn), &dwSize);
-            if (returnStatus == ERROR_SUCCESS)
+            DWORD dwReturnHttps;
+            DWORD dwReturnHttp;
+            long returnStatusHttps = this->readRegistryW(hSubKey, TEXT("https"), reinterpret_cast<LPBYTE>(&dwReturnHttps));
+            long returnStatusHttp = this->readRegistryW(hSubKey, TEXT("http"), reinterpret_cast<LPBYTE>(&dwReturnHttp))
+            if (returnStatusHttps == ERROR_SUCCESS || returnStatusHttp == ERROR_SUCCESS)
             {
-                if (dwReturn == 2)
+                if (dwReturnHttps == 2)
                 {
-                    this->logSystem(L"---> is trusted");
+                    this->logSystem(L"---> is trusted https");
                 }
-                else if (dwReturn == 4)
+                else if (dwReturnHttps == 4)
                 {
-                    this->logSystem(L"---> is restricted");
-                } else
-                {
-                    this->logSystem(L"---> is untrusted and unrestricted");
+                    this->logSystem(L"---> is restricted https");
+                }
+
+                if (dwReturnHttp == 2) {
+                    this->logSystem(L"---> is trusted http");
+                }
+                else if (dwReturnHttp == 4) {
+                    this->logSystem(L"---> is restricted http");
                 }
             }
-            else if (returnStatus == ERROR_FILE_NOT_FOUND)
+            else
             {
                 this->logAllEnums(hSubKey);
             }
@@ -256,6 +260,14 @@ void Logger::logAllEnums(HKEY hKey)
             RegCloseKey(hSubKey);
         }
     }
+}
+
+long Logger::readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn)
+{
+    DWORD dwType = REG_DWORD;
+    DWORD dwSize = sizeof(DWORD);
+    long returnStatus = RegQueryValueExW(hSubKey, hValueName, NULL, &dwType, dwReturn, &dwSize);
+    return returnStatus;
 }
 
 std::wstring Logger::readPath(const wchar_t* pathname)
