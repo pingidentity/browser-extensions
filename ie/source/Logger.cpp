@@ -233,7 +233,7 @@ void Logger::logAllEnums(HKEY hKey)
             DWORD dwReturnHttps;
             DWORD dwReturnHttp;
             long returnStatusHttps = this->readRegistryW(hSubKey, TEXT("https"), reinterpret_cast<LPBYTE>(&dwReturnHttps));
-            long returnStatusHttp = this->readRegistryW(hSubKey, TEXT("http"), reinterpret_cast<LPBYTE>(&dwReturnHttp))
+            long returnStatusHttp = this->readRegistryW(hSubKey, TEXT("http"), reinterpret_cast<LPBYTE>(&dwReturnHttp));
             if (returnStatusHttps == ERROR_SUCCESS || returnStatusHttp == ERROR_SUCCESS)
             {
                 if (dwReturnHttps == 2)
@@ -266,7 +266,7 @@ long Logger::readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn)
 {
     DWORD dwType = REG_DWORD;
     DWORD dwSize = sizeof(DWORD);
-    long returnStatus = RegQueryValueExW(hSubKey, hValueName, NULL, &dwType, dwReturn, &dwSize);
+    long returnStatus = RegQueryValueExW(hKey, hValueName, NULL, &dwType, dwReturn, &dwSize);
     return returnStatus;
 }
 
