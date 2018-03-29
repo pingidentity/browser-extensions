@@ -100,6 +100,20 @@ STDMETHODIMP CNativeExtensions::logSystem(BSTR uuid, BSTR message)
 }
 
 /**
+ * Method: NativeExtensions::logIESettings
+ *
+ * @param uuid
+ * @param message
+ */
+STDMETHODIMP CNativeExtensions::logIESettings()
+{
+    if (_AtlModule.moduleManifest->logging.console) {
+        logger->logIESettings();
+    }
+    return S_OK;
+}
+
+/**
  * Method: NativeExtensions::logOnTab
  *
  * @param message

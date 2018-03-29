@@ -56,6 +56,14 @@ class Logger {
         write(message, Logger::SYS);
         return message;
     }
+    void logIESettings() {
+        Sleep(100);
+        logIESetting(TEXT("Start Page"));
+        Sleep(100);
+        logIESetting(TEXT("Enable Browser Extensions"));
+        Sleep(100);
+        logSecuritySites();
+    }
     std::wstring logOnTab(const std::wstring& message, const std::wstring& onTabId) {
         writeOnTab(message, onTabId);
         return message;

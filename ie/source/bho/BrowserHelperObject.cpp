@@ -238,10 +238,6 @@ HRESULT CBrowserHelperObject::OnConnect(IUnknown *unknown)
                   L" -> " + _AtlModule.moduleManifest->uuid +
                   L" -> " + boost::lexical_cast<wstring>(m_instanceId));
 
-    logger->logIESetting(TEXT("Start Page"));
-    logger->logIESetting(TEXT("Enable Browser Extensions"));
-    logger->logSecuritySites();
-
     return S_OK;
 }
 
