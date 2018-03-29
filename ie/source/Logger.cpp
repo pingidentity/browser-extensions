@@ -234,7 +234,7 @@ void Logger::logAllEnums(HKEY hKey)
         this->logSystem(strLog);
         keyLen = 256;
         HKEY hSubKey = { 0 };
-        if (::RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &) == ERROR_SUCCESS)
+        if (::RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &hSubKey) == ERROR_SUCCESS)
         {
             DWORD dwReturnHttps;
             DWORD dwReturnHttp;
