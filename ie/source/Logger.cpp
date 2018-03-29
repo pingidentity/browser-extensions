@@ -228,13 +228,17 @@ void Logger::logAllEnums(HKEY hKey)
     DWORD index = 0;
     TCHAR keyName[512] = { 0 };
     DWORD keyLen = 512;
-    while (::RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS) {
+    while (::RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS)
+    {
         wstring strLog = keyName;
         this->logSystem(strLog);
         keyLen = 256;
         HKEY hSubKey = { 0 };
-        if (::RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &hSubKey) == ERROR_SUCCESS) {
-            if (this->readRegistryW(hSubKey, TEXT("https"), reinterpret_cast<LPBYTE>(&dwReturnHttps) == ERROR_SUCCESS ||
+        if (::RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &) == ERROR_SUCCESS)
+        {
+            DWORD dwReturnHttps;
+            DWORD dwReturnHttp;
+            if (this->readRegistryW(hSubKey, TEXT("https"), reinterpret_cast<LPBYTE>(&dwReturnHttps)) == ERROR_SUCCESS ||
                 this->readRegistryW(hSubKey, TEXT("http"), reinterpret_cast<LPBYTE>(&dwReturnHttp)) == ERROR_SUCCESS)
             {
                 if (dwReturnHttps == 2)
@@ -277,7 +281,7 @@ LONG Logger::readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn)
 {
     DWORD dwType = REG_DWORD;
     DWORD dwSize = sizeof(DWORD);
-    return ::RegQueryValueExW(hKey, hValueName, NULL, &dwType, dwReturn, &dwSize);;
+    return ::RegQueryValueExW(hKey, hValueName, NULL, &dwType, dwReturn, &dwSize);
 }
 
 std::wstring Logger::readPath(const wchar_t* pathname)
