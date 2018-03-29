@@ -171,17 +171,16 @@ void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId
 }
 
 void Logger::logIESetting(LPCTSTR hValueName) {
+    std::wstring errorLog;
     try {
         HKEY hKey;
         wchar_t lszValue[512];
         DWORD dwType = REG_SZ;
         DWORD dwSize = 512;
-        long returnStatus = RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\Microsoft\\Internet Explorer\\Main"), 0, KEY_QUERY_VALUE, &hKey);
-        if (returnStatus == ERROR_SUCCESS)
+        if (::RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\Microsoft\\Internet Explorer\\Main"), 0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
         {
-            returnStatus = RegQueryValueEx(hKey, hValueName, NULL, &dwType, (LPBYTE)&lszValue, &dwSize);
-            wstring strLog = hValueName;
-            if (returnStatus == ERROR_SUCCESS)
+            std::wstring strLog = hValueName;
+            if (::RegQueryValueEx(hKey, hValueName, NULL, &dwType, (LPBYTE)&lszValue, &dwSize) == ERROR_SUCCESS)
             {
                 strLog.append(L" = ");
                 strLog.append(lszValue);
@@ -193,12 +192,18 @@ void Logger::logIESetting(LPCTSTR hValueName) {
                 strLog.append(L"TBD");
                 this->logSystem(strLog);
             }
-            RegCloseKey(hKey);
+            ::RegCloseKey(hKey);
+        }
+        else
+        {
+            errorLog = L"ERROR: Couldn't open ";
+            errorLog.append(hValueName);
+            this->error(errorLog);
         }
     } catch (...) {
-        wstring errorLog = L"ERROR ";
+        errorLog = L"ERROR: Couldn't open ";
         errorLog.append(hValueName);
-        this->logSystem(errorLog);
+        this->error(errorLog);
     }
 }
 
@@ -206,15 +211,15 @@ void Logger::logSecuritySites() {
     try {
         HKEY hKey;
         LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\Domains");
-        if (RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) != ERROR_SUCCESS) {
+        if (::RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) != ERROR_SUCCESS) {
             this->logSystem(L"Can't read info about zone domains");
             return;
         }
 
-        this->logSystem(L"========== Security Sites");
+        this->logSystem(L"========== Security Sites ==========");
         this->logAllEnums(hKey);
     } catch (...) {
-        this->logSystem(L"Couldn't log security sites");
+        this->error(L"Couldn't log security sites");
     }
 }
 
@@ -223,18 +228,14 @@ void Logger::logAllEnums(HKEY hKey)
     DWORD index = 0;
     TCHAR keyName[512] = { 0 };
     DWORD keyLen = 512;
-
-    while (RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS) {
+    while (::RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS) {
         wstring strLog = keyName;
         this->logSystem(strLog);
         keyLen = 256;
         HKEY hSubKey = { 0 };
-        if (RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &hSubKey) == ERROR_SUCCESS) {
-            DWORD dwReturnHttps;
-            DWORD dwReturnHttp;
-            long returnStatusHttps = this->readRegistryW(hSubKey, TEXT("https"), reinterpret_cast<LPBYTE>(&dwReturnHttps));
-            long returnStatusHttp = this->readRegistryW(hSubKey, TEXT("http"), reinterpret_cast<LPBYTE>(&dwReturnHttp));
-            if (returnStatusHttps == ERROR_SUCCESS || returnStatusHttp == ERROR_SUCCESS)
+        if (::RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &hSubKey) == ERROR_SUCCESS) {
+            if (this->readRegistryW(hSubKey, TEXT("https"), reinterpret_cast<LPBYTE>(&dwReturnHttps) == ERROR_SUCCESS ||
+                this->readRegistryW(hSubKey, TEXT("http"), reinterpret_cast<LPBYTE>(&dwReturnHttp)) == ERROR_SUCCESS)
             {
                 if (dwReturnHttps == 2)
                 {
@@ -244,12 +245,22 @@ void Logger::logAllEnums(HKEY hKey)
                 {
                     this->logSystem(L"---> is restricted https");
                 }
+                else
+                {
+                    this->logSystem(L"---> is TBD");
+                }
 
-                if (dwReturnHttp == 2) {
+                if (dwReturnHttp == 2)
+                {
                     this->logSystem(L"---> is trusted http");
                 }
-                else if (dwReturnHttp == 4) {
+                else if (dwReturnHttp == 4)
+                {
                     this->logSystem(L"---> is restricted http");
+                }
+                else
+                {
+                    this->logSystem(L"---> is TBD");
                 }
             }
             else
@@ -262,12 +273,11 @@ void Logger::logAllEnums(HKEY hKey)
     }
 }
 
-long Logger::readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn)
+LONG Logger::readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn)
 {
     DWORD dwType = REG_DWORD;
     DWORD dwSize = sizeof(DWORD);
-    long returnStatus = RegQueryValueExW(hKey, hValueName, NULL, &dwType, dwReturn, &dwSize);
-    return returnStatus;
+    return ::RegQueryValueExW(hKey, hValueName, NULL, &dwType, dwReturn, &dwSize);;
 }
 
 std::wstring Logger::readPath(const wchar_t* pathname)
