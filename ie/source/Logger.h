@@ -82,7 +82,7 @@ class Logger {
     void write(const std::wstring& message, Level level = Logger::DBG);
     void writeOnTab(const std::wstring& message, const std::wstring& onTabId);
     void logAllEnums(HKEY hKey);
-    long readRegistryW(HKEY hKey, DWORD &dwReturn);
+    long readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn);
     std::wstring Logger::readPath(const wchar_t* pathname);
     std::wstring m_filename;
     std::wstring m_bgfilename;
