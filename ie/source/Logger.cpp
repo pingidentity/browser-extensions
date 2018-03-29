@@ -223,6 +223,9 @@ void Logger::logSecuritySites() {
     }
 }
 
+#define TRUSTED DWORD(2)
+#define RESTRICTED DWORD(4)
+
 void Logger::logAllEnums(HKEY hKey)
 {
     DWORD index = 0;
@@ -230,6 +233,7 @@ void Logger::logAllEnums(HKEY hKey)
     DWORD keyLen = 512;
     while (::RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS)
     {
+        Sleep(100);
         wstring strLog = keyName;
         this->logSystem(strLog);
         keyLen = 256;
@@ -241,30 +245,29 @@ void Logger::logAllEnums(HKEY hKey)
             if (this->readRegistryW(hSubKey, TEXT("https"), reinterpret_cast<LPBYTE>(&dwReturnHttps)) == ERROR_SUCCESS ||
                 this->readRegistryW(hSubKey, TEXT("http"), reinterpret_cast<LPBYTE>(&dwReturnHttp)) == ERROR_SUCCESS)
             {
-                if (dwReturnHttps == 2)
+                bool tbd = true;
+                if (dwReturnHttps == TRUSTED)
                 {
-                    this->logSystem(L"---> is trusted https");
+                    this->logSystem(L"---> trusted https");
+                    tbd = false;
                 }
-                else if (dwReturnHttps == 4)
+                else if (dwReturnHttps == RESTRICTED)
                 {
-                    this->logSystem(L"---> is restricted https");
+                    this->logSystem(L"---> restricted https");
+                    tbd = false;
                 }
-                else
+                if (dwReturnHttp == TRUSTED)
                 {
-                    this->logSystem(L"---> is TBD");
+                    this->logSystem(L"---> trusted http");
+                    tbd = false;
                 }
-
-                if (dwReturnHttp == 2)
+                else if (dwReturnHttp == RESTRICTED)
                 {
-                    this->logSystem(L"---> is trusted http");
+                    this->logSystem(L"---> restricted http");
+                    tbd = false;
                 }
-                else if (dwReturnHttp == 4)
-                {
-                    this->logSystem(L"---> is restricted http");
-                }
-                else
-                {
-                    this->logSystem(L"---> is TBD");
+                if (tbd) {
+                    this->logSystem(L"---> TBD");
                 }
             }
             else
@@ -272,7 +275,7 @@ void Logger::logAllEnums(HKEY hKey)
                 this->logAllEnums(hSubKey);
             }
 
-            RegCloseKey(hSubKey);
+            ::RegCloseKey(hSubKey);
         }
     }
 }
