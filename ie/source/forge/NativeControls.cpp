@@ -153,14 +153,15 @@ STDMETHODIMP CNativeControls::unload(BSTR uuid, unsigned int instanceId)
                   L" -> " + wstring(uuid) +
                   L" -> " + boost::lexical_cast<wstring>(instanceId));
 
-    // need to destroy the popup created in load() to avoid holding COM object reference and lingering dllhost.exe 
-    PopupWindow::pointer popup = m_popupWindows[uuid];
-    if (popup) { 
-        logger->debug(L"CNativeControls::unload destroying popup"
-                      L" -> " + wstring(uuid));
-        popup->DestroyWindow();
-        m_popupWindows[uuid] = NULL;
-    }
+    // BE-2601
+	//// need to destroy the popup created in load() to avoid holding COM object reference and lingering dllhost.exe 
+    //PopupWindow::pointer popup = m_popupWindows[uuid];
+    //if (popup) { 
+    //    logger->debug(L"CNativeControls::unload destroying popup"
+    //                  L" -> " + wstring(uuid));
+    //    popup->DestroyWindow();
+    //    m_popupWindows[uuid] = NULL;
+    //}
 
     if (m_frameProxy) {
         delete m_frameProxy;
