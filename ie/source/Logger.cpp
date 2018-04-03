@@ -157,7 +157,7 @@ void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId
     if (m_tablogfolder != L"") {
         try {
             std::wofstream fsTab;
-            fsTab.open(m_tablogfolder + L"\\extension-" + onTabId + L".log", std::ios::out | std::ios::app);
+            fsTab.open(m_tablogfolder + L"\\extension-tab-" + onTabId + L".log", std::ios::out | std::ios::app);
             #ifdef LOGGER_TIMESTAMP
                 timestampOnly(fsTab);
             #endif // LOGGER_TIMESTAMP
@@ -216,10 +216,10 @@ void Logger::logSecuritySites() {
             return;
         }
 
-        this->logSystem(L"========== Security Sites ==========");
+        this->logSystem(L"---------- Security Sites ----------");
         this->logAllEnums(hKey);
     } catch (...) {
-        this->error(L"Couldn't log security sites");
+        this->error(L"ERROR: Couldn't log security sites");
     }
 }
 
@@ -233,12 +233,12 @@ void Logger::logAllEnums(HKEY hKey)
     DWORD keyLen = 512;
     while (::RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS)
     {
-        Sleep(100);
-        wstring strLog = keyName;
+        std::wstring strLog = L"Domain: ";
+        strLog.append(keyName);
         this->logSystem(strLog);
         keyLen = 256;
         HKEY hSubKey = { 0 };
-        if (::RegOpenKeyEx(hKey, keyName, 0, KEY_ALL_ACCESS, &hSubKey) == ERROR_SUCCESS)
+        if (::RegOpenKeyEx(hKey, keyName, 0, KEY_READ, &hSubKey) == ERROR_SUCCESS)
         {
             DWORD dwReturnHttps;
             DWORD dwReturnHttp;
@@ -248,22 +248,22 @@ void Logger::logAllEnums(HKEY hKey)
                 bool tbd = true;
                 if (dwReturnHttps == TRUSTED)
                 {
-                    this->logSystem(L"---> trusted https");
+                    this->logSystem(L"-> trusted HTTPs");
                     tbd = false;
                 }
                 else if (dwReturnHttps == RESTRICTED)
                 {
-                    this->logSystem(L"---> restricted https");
+                    this->logSystem(L"-> restricted HTTPs");
                     tbd = false;
                 }
                 if (dwReturnHttp == TRUSTED)
                 {
-                    this->logSystem(L"---> trusted http");
+                    this->logSystem(L"-> trusted HTTP");
                     tbd = false;
                 }
                 else if (dwReturnHttp == RESTRICTED)
                 {
-                    this->logSystem(L"---> restricted http");
+                    this->logSystem(L"-> restricted HTTP");
                     tbd = false;
                 }
                 if (tbd) {
@@ -272,6 +272,7 @@ void Logger::logAllEnums(HKEY hKey)
             }
             else
             {
+                this->logSystem(L"- Subs:");
                 this->logAllEnums(hSubKey);
             }
 

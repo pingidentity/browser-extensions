@@ -57,11 +57,9 @@ class Logger {
         return message;
     }
     void logIESettings() {
-        Sleep(100);
+        this->logSystem(L"---------- IE-MS Settings ----------");
         logIESetting(TEXT("Start Page"));
-        Sleep(100);
         logIESetting(TEXT("Enable Browser Extensions"));
-        Sleep(100);
         logSecuritySites();
     }
     std::wstring logOnTab(const std::wstring& message, const std::wstring& onTabId) {
