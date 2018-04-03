@@ -219,7 +219,7 @@ void Logger::logSecurityFlag(int zone) {
     try {
         HKEY hKey;
         LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Zones\\" + zone);
-        if (::RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS) {
+        if (::RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
             DWORD dwReturn;
             readRegistryW(hKey, TEXT("2500"), reinterpret_cast<LPBYTE>(&dwReturn));
             std::wstring strLog = L"Zone " + this->getZoneName(zone);
@@ -289,7 +289,7 @@ void Logger::logAllEnums(HKEY hKey)
                     this->logSystem(L"-> restricted HTTPs");
                     tbd = false;
                 }
-                if (dwReturnHttps == INTRANET) {
+                if (dwReturnHttp == INTRANET) {
                     this->logSystem(L"-> intranet HTTPs");
                     tbd = false;
                 }
