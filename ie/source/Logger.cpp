@@ -107,8 +107,8 @@ void Logger::write(const std::wstring& message, Logger::Level level)
 
         if (m_filename != L"" && m_bgfilename != L"" && m_fgfilename != L"" && m_sysfilename != L"") {
             if (level != Logger::BG && level != Logger::FG && level != Logger::SYS) {
-            	std::wofstream fs;
-				fs.open(m_filename, std::ios::out | std::ios::app);
+                std::wofstream fs;
+                fs.open(m_filename, std::ios::out | std::ios::app);
                 #ifdef LOGGER_TIMESTAMP
                     timestamp(fs);
                 #endif // LOGGER_TIMESTAMP
@@ -119,16 +119,16 @@ void Logger::write(const std::wstring& message, Logger::Level level)
                 fs.close();
             } else {
                 if (level == Logger::BG) {
-                	std::wofstream fsBg;
-					fsBg.open(m_bgfilename, std::ios::out | std::ios::app);
+                    std::wofstream fsBg;
+                    fsBg.open(m_bgfilename, std::ios::out | std::ios::app);
                     #ifdef LOGGER_TIMESTAMP
                         timestampOnly(fsBg);
                     #endif // LOGGER_TIMESTAMP
                     fsBg << message << std::endl << std::flush;
                     fsBg.close();
                 } else if (level == Logger::FG) {
-                	std::wofstream fsFg;
-                	fsFg.open(m_fgfilename, std::ios::out | std::ios::app);
+                    std::wofstream fsFg;
+                    fsFg.open(m_fgfilename, std::ios::out | std::ios::app);
                     #ifdef LOGGER_TIMESTAMP
                         timestampOnly(fsFg);
                     #endif // LOGGER_TIMESTAMP
@@ -207,6 +207,38 @@ void Logger::logIESetting(LPCTSTR hValueName) {
     }
 }
 
+void Logger::logSecurityFlags() {
+    this->logSystem(L"---------- Security Flags ----------");
+    this->logSecurityFlag(INTRANET_ZONE);
+    this->logSecurityFlag(TRUSTED_SITES_ZONE);
+    this->logSecurityFlag(INTERNET_ZONE);
+    this->logSecurityFlag(RESTRICTED_SITES_ZONE);
+}
+
+void Logger::logSecurityFlag(int zone) {
+    try {
+        HKEY hKey;
+        LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Zones\\" + zone);
+        if (::RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS) {
+            DWORD dwReturn;
+            readRegistryW(hKey, TEXT("2500"), reinterpret_cast<LPBYTE>(&dwReturn));
+            std::wstring strLog = L"Zone " + this->getZoneName(zone);
+            if (dwReturn == DWORD(0))
+            {
+                strLog = strLog + L": ENABLED";
+            }
+            else
+            {
+                strLog = strLog + L": DISABLED";
+            }
+            this->logSystem(strLog);
+        }
+    }
+    catch (...) {
+        this->error(L"ERROR: Couldn't log security flag");
+    }
+}
+
 void Logger::logSecuritySites() {
     try {
         HKEY hKey;
@@ -223,14 +255,11 @@ void Logger::logSecuritySites() {
     }
 }
 
-#define TRUSTED DWORD(2)
-#define RESTRICTED DWORD(4)
-
 void Logger::logAllEnums(HKEY hKey)
 {
     DWORD index = 0;
-    TCHAR keyName[512] = { 0 };
-    DWORD keyLen = 512;
+    TCHAR keyName[256] = { 0 };
+    DWORD keyLen = 256;
     while (::RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS)
     {
         std::wstring strLog = L"Domain: ";
@@ -246,7 +275,11 @@ void Logger::logAllEnums(HKEY hKey)
                 this->readRegistryW(hSubKey, TEXT("http"), reinterpret_cast<LPBYTE>(&dwReturnHttp)) == ERROR_SUCCESS)
             {
                 bool tbd = true;
-                if (dwReturnHttps == TRUSTED)
+                if (dwReturnHttps == INTRANET) {
+                    this->logSystem(L"-> intranet HTTPs");
+                    tbd = false;
+                }
+                else if (dwReturnHttps == TRUSTED)
                 {
                     this->logSystem(L"-> trusted HTTPs");
                     tbd = false;
@@ -256,7 +289,11 @@ void Logger::logAllEnums(HKEY hKey)
                     this->logSystem(L"-> restricted HTTPs");
                     tbd = false;
                 }
-                if (dwReturnHttp == TRUSTED)
+                if (dwReturnHttps == INTRANET) {
+                    this->logSystem(L"-> intranet HTTPs");
+                    tbd = false;
+                }
+                else if (dwReturnHttp == TRUSTED)
                 {
                     this->logSystem(L"-> trusted HTTP");
                     tbd = false;
@@ -267,7 +304,7 @@ void Logger::logAllEnums(HKEY hKey)
                     tbd = false;
                 }
                 if (tbd) {
-                    this->logSystem(L"---> TBD");
+                    this->logSystem(L"-> TBD");
                 }
             }
             else
@@ -279,6 +316,24 @@ void Logger::logAllEnums(HKEY hKey)
             ::RegCloseKey(hSubKey);
         }
     }
+}
+
+std::wstring Logger::getZoneName(const int zone) {
+    if (zone == INTRANET_ZONE)
+    {
+        return L"Intranet";
+    } else if (zone == TRUSTED_SITES_ZONE)
+    {
+        return L"Trusted Sites";
+    } else if (zone == INTERNET_ZONE)
+    {
+        return L"Internet";
+    } else if (zone == RESTRICTED_SITES_ZONE)
+    {
+        return L"Restricted Sites";
+    }
+
+    return L"Unknown";
 }
 
 LONG Logger::readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn)
