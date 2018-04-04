@@ -219,7 +219,7 @@ void Logger::logSecurityFlag(int zone) {
     try {
         HKEY hKey;
         std::wstring strPath = L"Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Zones\\";
-        strPath.append(to_wstring(zone));
+        strPath.append(std::to_wstring(zone));
         if (::RegOpenKeyEx(HKEY_CURRENT_USER, strPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
             DWORD dwReturn;
             readRegistryW(hKey, TEXT("2500"), reinterpret_cast<LPBYTE>(&dwReturn));
