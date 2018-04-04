@@ -2,7 +2,7 @@
 
 function loggerproxy(message) {
     if (window.extensions) {
-        window.extensions.log("api-proxy.js", message);
+        window.extensions.logBackground("api-proxy.js", message);
     }
 };
 
