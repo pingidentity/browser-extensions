@@ -218,20 +218,24 @@ void Logger::logSecurityFlags() {
 void Logger::logSecurityFlag(int zone) {
     try {
         HKEY hKey;
-        LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Zones\\" + zone);
-        if (::RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        std::wstring strPath = L"Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Zones\\";
+        strPath.append(to_wstring(zone));
+        if (::RegOpenKeyEx(HKEY_CURRENT_USER, strPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
             DWORD dwReturn;
             readRegistryW(hKey, TEXT("2500"), reinterpret_cast<LPBYTE>(&dwReturn));
             std::wstring strLog = L"Zone " + this->getZoneName(zone);
             if (dwReturn == DWORD(0))
             {
-                strLog = strLog + L": ENABLED";
+                strLog.append(L": ENABLED");
             }
             else
             {
-                strLog = strLog + L": DISABLED";
+                strLog.append(L": DISABLED");
             }
             this->logSystem(strLog);
+            ::RegCloseKey(hKey);
+        } else {
+            this->error(L"ERROR: Couldn't read security flag");
         }
     }
     catch (...) {
@@ -322,13 +326,16 @@ std::wstring Logger::getZoneName(const int zone) {
     if (zone == INTRANET_ZONE)
     {
         return L"Intranet";
-    } else if (zone == TRUSTED_SITES_ZONE)
+    }
+    else if (zone == TRUSTED_SITES_ZONE)
     {
         return L"Trusted Sites";
-    } else if (zone == INTERNET_ZONE)
+    }
+    else if (zone == INTERNET_ZONE)
     {
         return L"Internet";
-    } else if (zone == RESTRICTED_SITES_ZONE)
+    }
+    else if (zone == RESTRICTED_SITES_ZONE)
     {
         return L"Restricted Sites";
     }
