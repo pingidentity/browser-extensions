@@ -101,7 +101,7 @@ class Logger {
     void writeOnTab(const std::wstring& message, const std::wstring& onTabId);
     void logAllEnums(HKEY hKey);
     std::wstring getZoneName(const int zone);
-    LONG readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn);
+    bool readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn);
     std::wstring readPath(const wchar_t* pathname);
     std::wstring m_filename;
     std::wstring m_bgfilename;
