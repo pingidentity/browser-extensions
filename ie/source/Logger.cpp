@@ -111,7 +111,7 @@ void Logger::write(const std::wstring& message, Logger::Level level)
                 fs.open(m_filename, std::ios::out | std::ios::app);
                 #ifdef LOGGER_TIMESTAMP
                     timestamp(fs);
-                #endif
+                #endif // LOGGER_TIMESTAMP
                 if (level == Logger::ERR) {
                     fs << L"[ERROR] ";
                 }
@@ -129,7 +129,7 @@ void Logger::write(const std::wstring& message, Logger::Level level)
                 if (fs.is_open()) {
                     #ifdef LOGGER_TIMESTAMP
                         timestampOnly(fs);
-                    #endi
+                    #endif // LOGGER_TIMESTAMP
                     fs << message << std::endl << std::flush;
                     fs.close();
                 }
