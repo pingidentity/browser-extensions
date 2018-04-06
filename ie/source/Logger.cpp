@@ -254,6 +254,7 @@ void Logger::logAllEnums(HKEY hKey)
         this->logSystem(strLog);
 
         HKEY hSubKey = {0};
+        keyLen = _countof(keyName);
         if (::RegOpenKeyEx(hKey, keyName, 0, KEY_READ, &hSubKey) == ERROR_SUCCESS) {
             bool isParentDomain = true;
             DWORD dwReturnHttps;
