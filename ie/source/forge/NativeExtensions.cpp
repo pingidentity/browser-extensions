@@ -57,21 +57,75 @@ STDMETHODIMP CNativeExtensions::InterfaceSupportsErrorInfo(REFIID riid)
     return S_FALSE;
 }
 
-
 /**
- * Method: NativeExtensions::log
+ * Method: NativeExtensions::logBackGround
  * 
  * @param uuid 
  * @param message
  */
-STDMETHODIMP CNativeExtensions::log(BSTR uuid, BSTR message)
+STDMETHODIMP CNativeExtensions::logBackground(BSTR uuid, BSTR message)
 {
     if (_AtlModule.moduleManifest->logging.console) {
-        logger->debug(L"[" + wstring(uuid) + L"] " + wstring(message));
+        logger->logBackground(L"[" + wstring(uuid) + L"] " + wstring(message));
     } 
     return S_OK;
 }
 
+/**
+ * Method: NativeExtensions::logForeground
+ *
+ * @param uuid
+ * @param message
+ */
+STDMETHODIMP CNativeExtensions::logForeground(BSTR uuid, BSTR message)
+{
+    if (_AtlModule.moduleManifest->logging.console) {
+        logger->logForeground(L"[" + wstring(uuid) + L"] " + wstring(message));
+    }
+    return S_OK;
+}
+
+/**
+ * Method: NativeExtensions::logSystem
+ *
+ * @param uuid
+ * @param message
+ */
+STDMETHODIMP CNativeExtensions::logSystem(BSTR uuid, BSTR message)
+{
+    if (_AtlModule.moduleManifest->logging.console) {
+        logger->logSystem(L"[" + wstring(uuid) + L"] " + wstring(message));
+    }
+    return S_OK;
+}
+
+/**
+ * Method: NativeExtensions::logIESettings
+ *
+ * @param uuid
+ * @param message
+ */
+STDMETHODIMP CNativeExtensions::logIESettings()
+{
+    if (_AtlModule.moduleManifest->logging.console) {
+        logger->logIESettings();
+    }
+    return S_OK;
+}
+
+/**
+ * Method: NativeExtensions::logOnTab
+ *
+ * @param message
+ * @param onTabId
+ */
+STDMETHODIMP CNativeExtensions::logOnTab(BSTR message, BSTR onTabId)
+{
+    if (_AtlModule.moduleManifest->logging.console) {
+        logger->logOnTab(message, onTabId);
+    }
+    return S_OK;
+}
 
 /**
  * Method: NativeExtensions::prefs_get

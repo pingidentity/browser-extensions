@@ -5,6 +5,15 @@ using namespace ATL;
 
 #define LOGGER_TIMESTAMP
 
+#define INTRANET DWORD(1)
+#define TRUSTED DWORD(2)
+#define RESTRICTED DWORD(4)
+
+#define INTRANET_ZONE 1
+#define TRUSTED_SITES_ZONE 2
+#define INTERNET_ZONE 3
+#define RESTRICTED_SITES_ZONE 4
+
 class Logger {
  public:
     enum Level {
@@ -14,10 +23,15 @@ class Logger {
         WARN,
         INFO,
         DBG,
+        BG,
+        FG,
+        SYS,
         ALL
     };
-    
-    Logger(Level level, const std::wstring& filename = L"");
+
+    Logger(Level level, const std::wstring& filename = L"", const std::wstring& bgfilename = L"",
+                        const std::wstring& fgfilename = L"", const std::wstring& sysfilename = L"",
+                        const std::wstring& tablogfolder = L"");
     
     void initialize(const boost::filesystem::wpath& path);
 
@@ -39,6 +53,33 @@ class Logger {
         write(message, Logger::DBG);
         return message;
     }
+    std::wstring logBackground(const std::wstring& message) {
+        write(message, Logger::BG);
+        return message;
+    }
+    std::wstring logForeground(const std::wstring& message) {
+        write(message, Logger::FG);
+        return message;
+    }
+    std::wstring logSystem(const std::wstring& message) {
+        write(message, Logger::SYS);
+        return message;
+    }
+    void logIESettings() {
+        this->logSystem(L"---------- IE-MS Settings ----------");
+        this->logIESetting(TEXT("Start Page"));
+        this->logIESetting(TEXT("Enable Browser Extensions"));
+        this->logSecurityFlags();
+        this->logSecuritySites();
+    }
+    std::wstring logOnTab(const std::wstring& message, const std::wstring& onTabId) {
+        writeOnTab(message, onTabId);
+        return message;
+    }
+    void logIESetting(LPCTSTR hValueName);
+    void logSecurityFlags();
+    void logSecurityFlag(int zone);
+    void logSecuritySites();
 
     // handy type parsers
     std::wstring parse(HRESULT hr);
@@ -57,13 +98,23 @@ class Logger {
 
  private:
     void write(const std::wstring& message, Level level = Logger::DBG);
+    void writeOnTab(const std::wstring& message, const std::wstring& onTabId);
+    void logAllEnums(HKEY hKey);
+    std::wstring getZoneName(const int zone);
+    bool readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn);
+    std::wstring readPath(const wchar_t* pathname);
     std::wstring m_filename;
+    std::wstring m_bgfilename;
+    std::wstring m_fgfilename;
+    std::wstring m_sysfilename;
+    std::wstring m_tablogfolder;
     Level m_level;
-#ifdef LOGGER_TIMESTAMP
-    double m_dAdjustment;
-    LARGE_INTEGER m_llFreq;
-    void timestamp(std::wofstream& fs);
-#endif // LOGGER_TIMESTAMP
+    #ifdef LOGGER_TIMESTAMP
+        double m_dAdjustment;
+        LARGE_INTEGER m_llFreq;
+        void timestamp(std::wofstream& fs);
+        void timestampOnly(std::wofstream& fs);
+    #endif // LOGGER_TIMESTAMP
 
  public:    
     typedef boost::shared_ptr<Logger> pointer;

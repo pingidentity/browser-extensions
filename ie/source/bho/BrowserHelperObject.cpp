@@ -7,7 +7,7 @@
 #include <util.h>
 #include <WindowsMessage.h>
 #include <proxy/Commands.h>
-
+#include <Windows.h>
 
 /**
  * Static initialization 
@@ -237,6 +237,7 @@ HRESULT CBrowserHelperObject::OnConnect(IUnknown *unknown)
     logger->debug(L"BrowserHelperObject::OnConnect done" 
                   L" -> " + _AtlModule.moduleManifest->uuid +
                   L" -> " + boost::lexical_cast<wstring>(m_instanceId));
+
     return S_OK;
 }
 

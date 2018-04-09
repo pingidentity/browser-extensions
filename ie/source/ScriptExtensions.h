@@ -37,6 +37,10 @@ class Manifest {
         wstring level;
         bool console;
         wstring filename;
+        wstring bgfilename;
+        wstring fgfilename;
+        wstring sysfilename;
+        wstring tablogfolder;
     };
 
     wstring name;
@@ -90,6 +94,10 @@ class Manifest {
         logger->info(L"  logging.level: " + logging.level);
         logger->info(L"  logging.console: " + boost::lexical_cast<wstring>(logging.console));
         logger->info(L"  logging.filename: " + boost::lexical_cast<wstring>(logging.filename));
+        logger->info(L"  logging.bgfilename: " + boost::lexical_cast<wstring>(logging.bgfilename));
+        logger->info(L"  logging.fgfilename: " + boost::lexical_cast<wstring>(logging.fgfilename));
+        logger->info(L"  logging.sysfilename: " + boost::lexical_cast<wstring>(logging.sysfilename));
+        logger->info(L"  logging.tablogfolder: " + boost::lexical_cast<wstring>(logging.tablogfolder));
     };
 };
 

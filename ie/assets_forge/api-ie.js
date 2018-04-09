@@ -20,7 +20,7 @@ var window_accessible = window.accessible;
  * debug logger
  */
 function logger(message) {
-	window_extensions.log("api-ie.js", message);
+	window_extensions.logBackground("api-ie.js", message);
 }
 
 
@@ -29,7 +29,7 @@ function logger(message) {
  */
 function fallbackLogger(level) {
 	return function(message) {
-		window_extensions.log("fallback-" + level, message);
+		window_extensions.logBackground("fallback-" + level, message);
 	};
 }
 window.console = (window.console ? window.console : {});

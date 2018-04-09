@@ -8,16 +8,22 @@
 /**
  * Logger:::Logger
  */
-Logger::Logger(Level level, const std::wstring& filename)
-    : m_level(level), 
-      m_filename(filename)
+Logger::Logger(Level level, const std::wstring& filename, const std::wstring& bgfilename,
+                            const std::wstring& fgfilename, const std::wstring& sysfilename,
+                            const std::wstring& tablogfolder)
+    : m_level(level),
+      m_filename(filename),
+      m_bgfilename(bgfilename),
+      m_fgfilename(fgfilename),
+      m_sysfilename(sysfilename),
+      m_tablogfolder(tablogfolder)
 {
-    if (m_filename == L"") {
+    if (m_filename == L"" || m_bgfilename == L"" || m_fgfilename == L"" || m_sysfilename == L"" || m_tablogfolder == L"") {
         this->enabled = false;
     } else {
         this->enabled = true;
     }
-#ifdef LOGGER_TIMESTAMP
+    #ifdef LOGGER_TIMESTAMP
     // find the fraction value of the current millisecond
     m_dAdjustment = 0;
     if (!QueryPerformanceFrequency(&m_llFreq))
@@ -38,7 +44,7 @@ Logger::Logger(Level level, const std::wstring& filename)
         }
     }
     SetThreadAffinityMask(GetCurrentThread(), oldmask);
-#endif // LOGGER_TIMESTAMP
+    #endif // LOGGER_TIMESTAMP
 }
 
 #include <IEPMapi.h>
@@ -59,47 +65,26 @@ void Logger::initialize(const boost::filesystem::wpath& path)
     if (!manifest) {
         this->debug(L"Logger::Logger could not read manifest");
         this->enabled = false;
-    } else if (manifest->logging.filename != L"") {
+    } else if (manifest->logging.filename != L"" && manifest->logging.bgfilename != L"" &&
+               manifest->logging.fgfilename != L"" && manifest->logging.sysfilename != L"" &&
+               manifest->logging.tablogfolder != L"") {
         // Replace environment variables in path so %LOCALAPPDATA%Low can be
         // used which is the only place where the low priviledged BHO process
         // can create files.
-        wchar_t expandedPath[MAX_PATH];
-        DWORD len = ::ExpandEnvironmentStrings(manifest->logging.filename.c_str(),
-                                               expandedPath, MAX_PATH);
-        if (len > 0 && len <= MAX_PATH) {
-            m_filename = expandedPath;
-
-            // try to open the file to see if it writeable
-            std::wofstream fs;
-            fs.open(m_filename, std::ios::out | std::ios::app);
-            if (!fs.is_open()) 
-            {
-                // get writeable path from IE (EPM can restrict access to the path provided)
-                LPWSTR writeableFolder;
-                HRESULT hr = ::IEGetWriteableFolderPath(FOLDERID_LocalAppDataLow, &writeableFolder);
-                if (SUCCEEDED(hr))
-                {
-                    m_filename = wstring(writeableFolder) + L"\\forgeRestricted.log";
-                    CoTaskMemFree(writeableFolder);
-                }
-            }
-            else
-            {
-                fs.close();
-            }
-        }
-        else {
-            this->error(L"Logger::Logger failed to expand environment variables in path");
-            m_filename = manifest->logging.filename;
-        }
-
+        m_filename = readPath(manifest->logging.filename.c_str());
+        this->debug(L"Logger::Logger using endpoint1: " + m_filename);
+        m_bgfilename = readPath(manifest->logging.bgfilename.c_str());
+        this->debug(L"Logger::Logger using endpoint2: " + m_bgfilename);
+        m_fgfilename = readPath(manifest->logging.fgfilename.c_str());
+        this->debug(L"Logger::Logger using endpoint3: " + m_fgfilename);
+        m_sysfilename = readPath(manifest->logging.sysfilename.c_str());
+        this->debug(L"Logger::Logger using endpoint4: " + m_sysfilename);
+        m_tablogfolder = readPath(manifest->logging.tablogfolder.c_str());
         this->enabled = true;
-        this->debug(L"Logger::Logger using endpoint: " + m_filename);
     } else {
         this->enabled = false;
     }
 }
-
 
 /**
  * Logger::write
@@ -112,28 +97,256 @@ void Logger::write(const std::wstring& message, Logger::Level level)
     }
 
     if (level <= m_level) {
-
-#ifdef DEBUGGER
+        #ifdef DEBUGGER
         if (level == Logger::ERR) {
             ::OutputDebugString(L"ERROR ");  
         }
         ::OutputDebugString(message.c_str());  
         ::OutputDebugString(L"\n");
-#endif /* DEBUGGER */
+        #endif /* DEBUGGER */
 
-        if (m_filename != L"") {
+        if (m_filename != L"" && m_bgfilename != L"" && m_fgfilename != L"" && m_sysfilename != L"") {
             std::wofstream fs;
-            fs.open(m_filename, std::ios::out | std::ios::app);
-#ifdef LOGGER_TIMESTAMP
-            timestamp(fs);
-#endif // LOGGER_TIMESTAMP
-            if (level == Logger::ERR) {
-                fs << L"[ERROR] ";
+            if (level != Logger::BG && level != Logger::FG && level != Logger::SYS) {
+                fs.open(m_filename, std::ios::out | std::ios::app);
+                #ifdef LOGGER_TIMESTAMP
+                    timestamp(fs);
+                #endif // LOGGER_TIMESTAMP
+                if (level == Logger::ERR) {
+                    fs << L"[ERROR] ";
+                }
+                fs << message << std::endl << std::flush;
+                fs.close();
+            } else {
+                if (level == Logger::BG) {
+                    fs.open(m_bgfilename, std::ios::out | std::ios::app);
+                } else if (level == Logger::FG) {
+                    fs.open(m_fgfilename, std::ios::out | std::ios::app);
+                } else if (level == Logger::SYS) {
+                    fs.open(m_sysfilename, std::ios::out | std::ios::app);
+                }
+
+                if (fs.is_open()) {
+                    #ifdef LOGGER_TIMESTAMP
+                        timestampOnly(fs);
+                    #endif // LOGGER_TIMESTAMP
+                    fs << message << std::endl << std::flush;
+                    fs.close();
+                }
             }
-            fs << message << std::endl << std::flush;
-            fs.close();
         }
     }
+}
+
+void Logger::writeOnTab(const std::wstring& message, const std::wstring& onTabId)
+{
+    if (!this->enabled) {
+        return;
+    }
+
+    if (m_tablogfolder != L"") {
+        try {
+            std::wofstream fsTab;
+            fsTab.open(m_tablogfolder + L"\\extension-tab-" + onTabId + L".log", std::ios::out | std::ios::app);
+            #ifdef LOGGER_TIMESTAMP
+                timestampOnly(fsTab);
+            #endif // LOGGER_TIMESTAMP
+            fsTab << message << std::endl << std::flush;
+            fsTab.close();
+        }
+        catch (...) {
+            this->error(L"EX: Could not write " + message + L" on tab" + onTabId);
+        }
+    }
+}
+
+void Logger::logIESetting(LPCTSTR hValueName) {
+    std::wstring errorLog;
+    try {
+        HKEY hKey;
+        wchar_t lszValue[512];
+        DWORD dwType = REG_SZ;
+        DWORD dwSize = _countof(lszValue);
+        if (::RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\Microsoft\\Internet Explorer\\Main"), 0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS) {
+            std::wstring strLog = hValueName;
+            if (::RegQueryValueEx(hKey, hValueName, NULL, &dwType, (LPBYTE) & lszValue, &dwSize) == ERROR_SUCCESS) {
+                strLog.append(L" = ");
+                strLog.append(lszValue);
+            } else {
+                strLog.append(L" = ");
+                strLog.append(L"TBD");
+            }
+            this->logSystem(strLog);
+            ::RegCloseKey(hKey);
+        } else {
+            errorLog = L"ERROR: Couldn't OPEN and READ ";
+            errorLog.append(hValueName);
+            this->error(errorLog);
+        }
+    } catch (...) {
+        errorLog = L"ERROR - EXCEPTION: Couldn't LOG ";
+        errorLog.append(hValueName);
+        this->error(errorLog);
+    }
+}
+
+void Logger::logSecurityFlags() {
+    this->logSystem(L"---------- Security Flags ----------");
+    this->logSecurityFlag(INTRANET_ZONE);
+    this->logSecurityFlag(TRUSTED_SITES_ZONE);
+    this->logSecurityFlag(INTERNET_ZONE);
+    this->logSecurityFlag(RESTRICTED_SITES_ZONE);
+}
+
+void Logger::logSecurityFlag(int zone) {
+    try {
+        HKEY hKey = {0};
+        std::wstring strPath = L"Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Zones\\";
+        strPath.append(std::to_wstring(zone));
+        if (::RegOpenKeyEx(HKEY_CURRENT_USER, strPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+            std::wstring strLog = L"Zone " + this->getZoneName(zone);
+            DWORD dwReturn;
+            if (this->readRegistryW(hKey, TEXT("2500"), reinterpret_cast<LPBYTE>(&dwReturn))) {
+                if (dwReturn == DWORD(0)) {
+                    strLog.append(L": ENABLED");
+                } else {
+                    strLog.append(L": DISABLED");
+                }
+            } else {
+                strLog.append(L": DISABLED");
+            }
+            this->logSystem(strLog);
+            ::RegCloseKey(hKey);
+        } else {
+            this->error(L"ERROR: Couldn't OPEN and READ security flag");
+        }
+    }
+    catch (...) {
+        this->error(L"ERROR - EXCEPTION: Couldn't LOG security flag");
+    }
+}
+
+void Logger::logSecuritySites() {
+    try {
+        HKEY hKey = {0};
+        LPCTSTR path = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\Domains");
+        if (::RegOpenKeyEx(HKEY_CURRENT_USER, path, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
+        {
+            this->logSystem(L"---------- Security Sites ----------");
+            this->logAllEnums(hKey);
+            ::RegCloseKey(hKey);
+        } else {
+            this->error(L"ERROR: Couldn't OPEN and READ registry keys about zone domains");
+        }
+    } catch (...) {
+        this->error(L"ERROR - EXCEPTION: Couldn't LOG security sites");
+    }
+}
+
+void Logger::logAllEnums(HKEY hKey)
+{
+    DWORD index = 0;
+    TCHAR keyName[256] = {0};
+    DWORD keyLen = _countof(keyName);
+    while (::RegEnumKeyEx(hKey, index++, keyName, &keyLen, 0, 0, 0, 0) == ERROR_SUCCESS) {
+        std::wstring strLog = L"Domain: ";
+        strLog.append(keyName);
+        this->logSystem(strLog);
+
+        HKEY hSubKey = {0};
+        keyLen = _countof(keyName);
+        if (::RegOpenKeyEx(hKey, keyName, 0, KEY_READ, &hSubKey) == ERROR_SUCCESS) {
+            bool isParentDomain = true;
+            DWORD dwReturnHttps;
+            if (this->readRegistryW(hSubKey, TEXT("https"), reinterpret_cast<LPBYTE>(&dwReturnHttps))) {
+                switch (dwReturnHttps) {
+                    case INTRANET:
+                        this->logSystem(L"-> intranet HTTPs");
+                        break;
+                    case TRUSTED:
+                        this->logSystem(L"-> trusted HTTPs");
+                        break;
+                    case RESTRICTED:
+                        this->logSystem(L"-> restricted HTTPs");
+                        break;
+                    default:
+                        this->logSystem(L"-> internet HTTPs");
+                        break;
+                }
+
+                isParentDomain = false;
+            }
+
+            DWORD dwReturnHttp;
+            if (this->readRegistryW(hSubKey, TEXT("http"), reinterpret_cast<LPBYTE>(&dwReturnHttp))) {
+                switch (dwReturnHttp) {
+                    case INTRANET:
+                        this->logSystem(L"-> intranet HTTP");
+                        break;
+                    case TRUSTED:
+                        this->logSystem(L"-> trusted HTTP");
+                        break;
+                    case RESTRICTED:
+                        this->logSystem(L"-> restricted HTTP");
+                        break;
+                    default:
+                        this->logSystem(L"-> internet HTTP");
+                        break;
+                }
+
+                isParentDomain = false;
+            }
+
+            if (isParentDomain) {
+                this->logSystem(L" subs:");
+                this->logAllEnums(hSubKey);
+            }
+
+            ::RegCloseKey(hSubKey);
+        }
+    }
+}
+
+std::wstring Logger::getZoneName(const int zone) {
+    if (zone == INTRANET_ZONE) {
+        return L"Intranet";
+    } else if (zone == TRUSTED_SITES_ZONE) {
+        return L"Trusted Sites";
+    } else if (zone == INTERNET_ZONE) {
+        return L"Internet";
+    } else if (zone == RESTRICTED_SITES_ZONE) {
+        return L"Restricted Sites";
+    }
+
+    return L"Unknown";
+}
+
+bool Logger::readRegistryW(HKEY hKey, LPCTSTR hValueName, LPBYTE dwReturn) {
+    DWORD dwType = REG_DWORD;
+    DWORD dwSize = sizeof(DWORD);
+    if (::RegQueryValueExW(hKey, hValueName, NULL, &dwType, dwReturn, &dwSize) == ERROR_SUCCESS) {
+        if (dwType == REG_DWORD) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+std::wstring Logger::readPath(const wchar_t* pathname)
+{
+    std::wstring str_pathname;
+    wchar_t expandedPath[MAX_PATH];
+    DWORD len = ::ExpandEnvironmentStrings(pathname, expandedPath, MAX_PATH);
+    if (len > 0 && len <= MAX_PATH) {
+        str_pathname = expandedPath;
+    }
+    else {
+        this->error(L"Logger::Logger failed to expand environment variables in path");
+        str_pathname = pathname;
+    }
+
+    return str_pathname;
 }
 
 #ifdef LOGGER_TIMESTAMP
@@ -146,7 +359,7 @@ void Logger::timestamp(std::wofstream& fs)
     LARGE_INTEGER llCounter;
     wchar_t sTmpTime[30] = {0};
     wchar_t* pTmpTime = NULL;
-  
+
     if (!QueryPerformanceCounter(&llCounter))
     llCounter.QuadPart = 0;
 
@@ -180,30 +393,39 @@ void Logger::timestamp(std::wofstream& fs)
 
     wchar_t diagStr[200];
     StringCbPrintf(diagStr, sizeof(diagStr), L"%04d-%02d-%02d %02d:%02d:%02d.%s [PID=0x%08X(%010lu);TID=0x%08X(%010lu)]: ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, pTmpTime, dwPID, dwPID, dwTID, dwTID);
-    fs << diagStr;  
+    fs << diagStr;
+}
+
+void Logger::timestampOnly(std::wofstream& fs)
+{
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    wchar_t diagStr[200];
+    StringCbPrintf(diagStr, sizeof(diagStr), L"%04d-%02d-%02d %02d:%02d:%02d: ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+    fs << diagStr;
 }
 #endif
 
 /**
  * Logger::parse(HRESULT)
  */
-std::wstring Logger::parse(HRESULT hr) 
+std::wstring Logger::parse(HRESULT hr)
 {
     HRESULT result;
 
     wchar_t* buf = NULL;
-    result = ::FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+    result = ::FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
                               FORMAT_MESSAGE_FROM_SYSTEM, NULL, hr,
                               MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                               reinterpret_cast<wchar_t*>(&buf), 0, NULL);
     std::wstring hrstr(buf != NULL ? buf : L"unknown error");
     ::LocalFree(reinterpret_cast<HLOCAL>(buf));
-    
+
     std::wstringstream hrhex;
     hrhex << L"0x" << std::hex << hr;
 
     // remove trailing eoln
-    hrstr.erase(hrstr.find_last_not_of(L" \n\r\t")+1); 
+    hrstr.erase(hrstr.find_last_not_of(L" \n\r\t")+1);
 
     return hrhex.str() + L" -> " + hrstr;
 }
@@ -223,7 +445,7 @@ std::wstring Logger::parse(IDispatch *object)
     // query object typeinfo
     CComPtr<ITypeInfo> typeinfo;
     hr = object->GetTypeInfo(0, 0, &typeinfo);
-    if (FAILED(hr)) { 
+    if (FAILED(hr)) {
         return L"no typeinfo for object -> " + this->parse(hr);
     }
 
@@ -239,15 +461,15 @@ std::wstring Logger::parse(IDispatch *object)
     }
 
     // properties
-    output << L"    property count: " 
+    output << L"    property count: "
            << boost::lexical_cast<std::wstring>(typeAttr->cVars);
     for (UINT curValue(0); curValue < typeAttr->cVars; ++curValue) {
         VARDESC *varDesc;
         hr = typeinfo->GetVarDesc(curValue, &varDesc);
-        if (FAILED(hr)) { 
+        if (FAILED(hr)) {
             output << L"    could not read property descriptor";
-            continue; 
-        }                              
+            continue;
+        }
 
         CComBSTR name;
         CComVariant value;
@@ -257,27 +479,27 @@ std::wstring Logger::parse(IDispatch *object)
         } else {
             hr = CComPtr<IDispatch>(object).GetPropertyByName(name, &value);
             if (FAILED(hr)) {
-                output << L"    could not read property value for: '" 
+                output << L"    could not read property value for: '"
                        << std::wstring(name) << L"'";
                 continue;
             }
         }
 
-        output << L"    " 
-               << stringify(varDesc, typeinfo) << L"\t: " 
-               << stringify(value.vt) << L" " 
-               << (value.vt == VT_BSTR 
-                   ? L"\"" + limit(value.bstrVal) + L"\"" 
+        output << L"    "
+               << stringify(varDesc, typeinfo) << L"\t: "
+               << stringify(value.vt) << L" "
+               << (value.vt == VT_BSTR
+                   ? L"\"" + limit(value.bstrVal) + L"\""
                    : L"[object]");
 
         if (value.vt == VT_DISPATCH) {
             output << this->parse(value.pdispVal);
         }
-        typeinfo->ReleaseVarDesc(varDesc);             
+        typeinfo->ReleaseVarDesc(varDesc);
     }
 
     // methods
-    output << L"    method count: " 
+    output << L"    method count: "
            << boost::lexical_cast<std::wstring>(typeAttr->cFuncs)
            << L"\t";
 
@@ -286,13 +508,13 @@ std::wstring Logger::parse(IDispatch *object)
         hr = typeinfo->GetFuncDesc(curFunc, &funcDesc);
         CComBSTR methodName;
         hr |= typeinfo->GetDocumentation(funcDesc->memid, &methodName, 0, 0, 0);
-        if (FAILED(hr)) { 
+        if (FAILED(hr)) {
             output << L"    name error";
-            typeinfo->ReleaseFuncDesc(funcDesc); 
-            continue; 
+            typeinfo->ReleaseFuncDesc(funcDesc);
+            continue;
         }
 
-        output << stringify(&funcDesc->elemdescFunc.tdesc, typeinfo) 
+        output << stringify(&funcDesc->elemdescFunc.tdesc, typeinfo)
                << L" " << std::wstring(methodName) << L"(";
         for (int curParam(0); curParam < funcDesc->cParams; ++curParam) {
             output << stringify(&funcDesc->lprgelemdescParam[curParam].tdesc,
@@ -320,7 +542,7 @@ std::wstring Logger::parse(IDispatch *object)
 /**
  * Logger::stringify(VARDESC)
  */
-std::wstring Logger::stringify(VARDESC *varDesc, ITypeInfo *pti) 
+std::wstring Logger::stringify(VARDESC *varDesc, ITypeInfo *pti)
 {
     HRESULT hr;
     std::wstringstream output;
@@ -357,7 +579,7 @@ std::wstring Logger::stringify(VARDESC *varDesc, ITypeInfo *pti)
 /**
  * Logger::stringify(TYPEDESC)
  */
-std::wstring Logger::stringify(TYPEDESC *typeDesc, ITypeInfo *pTypeInfo) 
+std::wstring Logger::stringify(TYPEDESC *typeDesc, ITypeInfo *pTypeInfo)
 {
     std::wstringstream output;
 
@@ -374,7 +596,7 @@ std::wstring Logger::stringify(TYPEDESC *typeDesc, ITypeInfo *pTypeInfo)
         output << stringify(&typeDesc->lpadesc->tdescElem, pTypeInfo);
         for (int dim(0); typeDesc->lpadesc->cDims; ++dim) {
             output << '['<< typeDesc->lpadesc->rgbounds[dim].lLbound << "..."
-                << (typeDesc->lpadesc->rgbounds[dim].cElements + 
+                << (typeDesc->lpadesc->rgbounds[dim].cElements +
                     typeDesc->lpadesc->rgbounds[dim].lLbound - 1) << ']';
         }
         return output.str();
@@ -383,7 +605,7 @@ std::wstring Logger::stringify(TYPEDESC *typeDesc, ITypeInfo *pTypeInfo)
         output << stringify(typeDesc->hreftype, pTypeInfo);
         return output.str();
     }
-    
+
     return stringify(typeDesc->vt);
 }
 
@@ -391,7 +613,7 @@ std::wstring Logger::stringify(TYPEDESC *typeDesc, ITypeInfo *pTypeInfo)
 /**
  * Logger::stringify(HREFTYPE)
  */
-std::wstring Logger::stringify(HREFTYPE refType, ITypeInfo *pti) 
+std::wstring Logger::stringify(HREFTYPE refType, ITypeInfo *pti)
 {
     CComPtr<ITypeInfo> pTypeInfo(pti);
     CComPtr<ITypeInfo> pCustTypeInfo;
@@ -412,8 +634,8 @@ std::wstring Logger::stringify(HREFTYPE refType, ITypeInfo *pti)
 
 /**
  * Logger::stringify(VT)
- */ 
-std::wstring Logger::stringify(int vt) 
+ */
+std::wstring Logger::stringify(int vt)
 {
     switch(vt) { // VARIANT/VARIANTARG compatible types
     case VT_I2:       return L"short";
@@ -442,5 +664,5 @@ std::wstring Logger::stringify(int vt)
     case VT_LPSTR:    return L"char*";
     case VT_LPWSTR:   return L"wchar_t*";
     }
-    return L"unknown type";    
+    return L"unknown type";
 }
