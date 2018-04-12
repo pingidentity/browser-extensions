@@ -53,8 +53,8 @@ def pre_create_all_js():
 		{'do': {'add_to_all_js': 'common-v2/all-prefix.js'}},
 
 		# firefox will warning if we include jquery into all.js
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-2.2.4.js'}},
-		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-ui-1.10.4.custom.js'}},
+		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-3.3.1.js'}},
+		{'when': {'platform_is': 'chrome,safari,ie'}, 'do': {'add_to_all_js': 'common-v2/jquery-ui-1.12.1.js'}},
 
 		# start api
 		{'do': {'add_to_all_js': 'common-v2/api-prefix.js'}},
@@ -117,11 +117,11 @@ def post_create_all_js():
 			'to': 'firefox/template-app/data/forge/api-firefox-proxy.js'
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'copy_files': {
-			'from': 'common-v2/jquery-2.2.4.js',
+			'from': 'common-v2/jquery-3.3.1.js',
 			'to': 'firefox/template-app/data/forge/jquery.js'
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'copy_files': {
-			'from': 'common-v2/jquery-ui-1.10.4.custom.js',
+			'from': 'common-v2/jquery-ui-1.12.1.js',
 			'to': 'firefox/template-app/data/forge/jquery-ui.custom.js'
 		}}},
 		{'when': {'platform_is': 'firefox'}, 'do': {'copy_files': {
