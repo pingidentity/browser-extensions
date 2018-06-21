@@ -51,17 +51,7 @@ forge['is'] = {
      * @return {boolean}
      */
     'edge': function() {
-        if (window !== undefined && window.navigator !== undefined) {
-            var ua = window.navigator.userAgent;
-            if (ua !== undefined) {
-                var edge = ua.indexOf('Edge/');
-                if (edge > 0) {
-                    return true;
-                }
-
-                return false;
-            }
-        }
+		return false;
     },
 	/**
 	 * @return {boolean}
