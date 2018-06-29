@@ -129,7 +129,14 @@ forge.is.desktop = function () {
  * @return {boolean}
  */
 forge.is.chrome = function () {
-	return true;
+    return navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+};
+
+/**
+ * @return {boolean}
+ */
+forge.is.firefox = function () {
+    return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 };
 
 // Private API implementation
