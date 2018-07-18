@@ -5,6 +5,11 @@ def activate_patterns():
 		return [pat for act in plugins['activations']['config']['activations'] for pat in act['patterns']]
 	else:
 		return []
+def activate_exclude_patterns():
+	if "activations" in plugins:
+		return [pat for act in plugins['activations']['config']['activations'] for pat in (act['exclude_patterns'] if act.has_key('exclude_patterns') else [])]
+	else:
+		return []
 def request_permissions():
 	if "request" in plugins and "config" in plugins['request'] and "permissions" in plugins['request']['config']:
 		return plugins["request"]["config"]["permissions"]
@@ -50,6 +55,7 @@ def get_run_at(run_at):
 	"content_scripts": [{% def content_script(activation) %}
 		{
 			"matches": ${json.dumps(activation.patterns)}
+			, "exclude_matches": ${json.dumps(activate_exclude_patterns())}
 			, "js": ${json.dumps(["forge/app_config.js", "forge/all.js"] + activation.scripts)}
 {% if activation.has_key("styles") %}\
 	{% if len(eval(json.dumps(activation.styles))) > 0 %}\
