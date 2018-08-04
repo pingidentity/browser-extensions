@@ -601,20 +601,30 @@ STDMETHODIMP CNativeMessaging::bg_toFocussed(BSTR _uuid,
                                              IDispatch *callback, IDispatch *error)
 {
     wstring uuid(_uuid), type(_type), content(_content);
-    /*logger->debug(L"CNativeMessaging::bg_toFocussed"
+    logger->debug(L"CNativeMessaging::bg_toFocussed"
                   L" -> " + uuid +
                   L" -> " + type +
                   L" -> " + content +
+                  L" -> m_activeTab.id:" + boost::lexical_cast<wstring>(m_activeTab.id) +
+                  L" -> m_activeTab.selected:" + boost::lexical_cast<wstring>(m_activeTab.selected) +
+                  L" -> m_activeTab.url:" + boost::lexical_cast<wstring>(m_activeTab.url) +
+                  L" -> m_activeTab.title:" + boost::lexical_cast<wstring>(m_activeTab.title) +
                   L" -> " + boost::lexical_cast<wstring>(callback) +
-                  L" -> " + boost::lexical_cast<wstring>(error));*/
+                  L" -> " + boost::lexical_cast<wstring>(error));
     
     HRESULT hr;
     Callback::vector v = fg_callbacks[uuid];
     for (Callback::vector::const_iterator i = v.begin(); i != v.end(); i++) {
         Callback::pointer fg_callback = *i;
-        if (fg_callback->tabId != m_activeTab.id) continue; 
+        logger->debug(L"CNativeMessaging::bg_toFocussed callback tabId:"
+                  L" -> " + boost::lexical_cast<wstring>(fg_callback->tabId));
+        if (fg_callback->tabId != m_activeTab.id) {
+            logger->debug(L"CNativeMessaging::bg_toFocussed callback skip...");
+            continue; 
+        }
         if (fg_callback->type == L"*" || 
             fg_callback->type == type) {
+            logger->debug(L"CNativeMessaging::bg_toFocussed callback --> Dispatch");
             hr = fg_callback->Dispatch(content, callback);
         }
     }    

@@ -336,8 +336,8 @@ CBrowserHelperObject::MatchManifest(IWebBrowser2 *webBrowser2,
     // Do nothing for special urls
     if (!(location.find(L"http:")  == 0 ||
           location.find(L"https:") == 0 ||
-          location.find(L"file:")  == 0 /*||
-		  location.find(L"about:") == 0*/)) {
+          location.find(L"file:")  == 0 ||
+		  location.find(L"about:") == 0)) {
         logger->debug(L"BrowserHelperObject::MatchManifest boring url"
                       L" -> " + location);        
         return std::pair<wstringvector, wstringvector>();
@@ -851,12 +851,6 @@ void __stdcall CBrowserHelperObject::OnWindowStateChanged(DWORD flags, DWORD mas
         break;
     }
 
-	//if this is a blank page, we don't make it to be the active tab 
-	wstring location(url);
-	if (location.find(L"about:blank") == 0) {
-		focused = false;
-	}
-	
     m_tabInfo.id     = m_instanceId;
     m_tabInfo.active = focused;
     m_tabInfo.url    = url;
