@@ -1,9 +1,9 @@
 {% python
 def activate_patterns():
 	if "activations" in plugins and "config" in plugins["activations"] and "activations" in plugins["activations"]["config"]:
-        matches = [pat for act in plugins['activations']['config']['activations'] for pat in act['patterns']]
-        matches.push("about:*")
-        return matches
+        	matches = [pat for act in plugins['activations']['config']['activations'] for pat in act['patterns']]
+        	matches.append("about:*")
+        	return matches
 	else:
 		return []
 def activate_exclude_patterns():
