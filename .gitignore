@@ -38,3 +38,4 @@ trigger-gen
 generate/src/
 ie/msvc/.vs/
 .vscode/
+.idea/
